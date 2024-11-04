@@ -1,5 +1,5 @@
-import MovieCard from '@/components/MovieCard';
-import { Movie } from '@/types/movie';
+import MovieCard from '../components/MovieCard';
+import { Movie } from '../types/movie';
 
 async function getRatedMovies(): Promise<Movie[]> {
   const res = await fetch('http://localhost:5012/api/movies/rated', {
