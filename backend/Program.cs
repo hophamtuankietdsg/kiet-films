@@ -13,7 +13,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
         builder => builder
-            .WithOrigins("http://localhost:3000")
+            .WithOrigins(
+                "http://localhost:3000",
+                "https://kiet-films.onrender.com", // Thêm domain frontend của bạn
+                "https://kiet-films.vercel.app"
+            )
             .AllowAnyMethod()
             .AllowAnyHeader());
 });
@@ -28,11 +32,27 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 var app = builder.Build();
 
+// Configure HTTPS
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
+// Swagger chỉ cho Development
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Cấu hình HTTPS redirect
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwardedHeadersOptions.KnownNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
 
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");

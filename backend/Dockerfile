@@ -16,9 +16,9 @@ WORKDIR /app
 COPY --from=build /app .
 
 # Set environment variables
-ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
-EXPOSE 80
+EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "backend.dll"]
