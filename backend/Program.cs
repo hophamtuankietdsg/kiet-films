@@ -20,15 +20,12 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 // Add CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend",
-        builder => builder
-            .WithOrigins(
-                "http://localhost:3000",
-                "https://kiet-films.onrender.com",
-                "https://kiet-films.vercel.app"
-            )
-            .AllowAnyMethod()
-            .AllowAnyHeader());
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
 // Add HttpClient and TMDB Service
@@ -47,19 +44,26 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Swagger chỉ cho Development
+// Use Forwarded Headers (đặt trước các middleware khác)
+app.UseForwardedHeaders();
+
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Use Forwarded Headers
-app.UseForwardedHeaders();
+// Enable CORS
+app.UseCors();
 
+app.UseRouting();
 app.UseHttpsRedirection();
-app.UseCors("AllowFrontend");
 app.UseAuthorization();
+
+// Add health check endpoint
+app.MapGet("/", () => "API is running!");
+
 app.MapControllers();
 
 app.Run();

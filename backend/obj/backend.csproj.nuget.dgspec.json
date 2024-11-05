@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\2024\\projects\\kiet-films\\backend\\backend.csproj": {}
+    "D:\\2024\\projects\\kiet-films\\backend\\backend.csproj": {}
   },
   "projects": {
-    "d:\\2024\\projects\\kiet-films\\backend\\backend.csproj": {
+    "D:\\2024\\projects\\kiet-films\\backend\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\2024\\projects\\kiet-films\\backend\\backend.csproj",
+        "projectUniqueName": "D:\\2024\\projects\\kiet-films\\backend\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "d:\\2024\\projects\\kiet-films\\backend\\backend.csproj",
+        "projectPath": "D:\\2024\\projects\\kiet-films\\backend\\backend.csproj",
         "packagesPath": "C:\\Users\\kiethopt\\.nuget\\packages\\",
-        "outputPath": "d:\\2024\\projects\\kiet-films\\backend\\obj\\",
+        "outputPath": "D:\\2024\\projects\\kiet-films\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\kiethopt\\AppData\\Roaming\\NuGet\\NuGet.Config",

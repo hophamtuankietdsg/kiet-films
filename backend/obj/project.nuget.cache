@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "6YxTldCKpFA=",
+  "dgSpecHash": "iRv61Y2m2LM=",
   "success": true,
-  "projectFilePath": "d:\\2024\\projects\\kiet-films\\backend\\backend.csproj",
+  "projectFilePath": "D:\\2024\\projects\\kiet-films\\backend\\backend.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\kiethopt\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\kiethopt\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
