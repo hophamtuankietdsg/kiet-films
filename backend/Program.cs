@@ -38,27 +38,18 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 var app = builder.Build();
 
-// Configure HTTPS
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHsts();
-}
-
 // Use Forwarded Headers (đặt trước các middleware khác)
 app.UseForwardedHeaders();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Bật Swagger cho cả Production để test
+app.UseSwagger();
+app.UseSwaggerUI();
 
 // Enable CORS
 app.UseCors();
 
 app.UseRouting();
-app.UseHttpsRedirection();
+
 app.UseAuthorization();
 
 // Add health check endpoint
