@@ -1,17 +1,5 @@
+import { getRatedMovies } from '@/lib/api';
 import MovieCard from '../components/MovieCard';
-import { Movie } from '../types/movie';
-
-async function getRatedMovies(): Promise<Movie[]> {
-  const res = await fetch('http://localhost:5012/api/movies/rated', {
-    cache: 'no-store',
-  });
-
-  if (!res.ok) {
-    throw new Error('Failed to fetch rated movies');
-  }
-
-  return res.json();
-}
 
 export default async function Home() {
   const movies = await getRatedMovies();
