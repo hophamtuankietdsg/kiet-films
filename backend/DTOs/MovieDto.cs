@@ -19,24 +19,24 @@ namespace backend.DTOs
         public string ReleaseDateStr { get; set; } = string.Empty;
 
         public DateTime ReleaseDate
-    {
-        get
         {
-            // TMDB trả về ngày dạng "YYYY-MM-DD"
-            if (string.IsNullOrEmpty(ReleaseDateStr))
-                return DateTime.MinValue;
-
-            if (DateTime.TryParseExact(ReleaseDateStr, 
-                "yyyy-MM-dd", 
-                System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.None, 
-                out DateTime date))
+            get
             {
-                return date;
+                // TMDB trả về ngày dạng "YYYY-MM-DD"
+                if (string.IsNullOrEmpty(ReleaseDateStr))
+                    return DateTime.MinValue;
+
+                if (DateTime.TryParseExact(ReleaseDateStr, 
+                    "yyyy-MM-dd", 
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.None, 
+                    out DateTime date))
+                {
+                    return date;
+                }
+                return DateTime.MinValue;
             }
-            return DateTime.MinValue;
         }
-    }
     }
 
     public class MovieReviewDto

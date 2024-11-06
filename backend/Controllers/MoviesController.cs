@@ -9,7 +9,6 @@ using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace backend.Controllers
 {
@@ -50,37 +49,52 @@ namespace backend.Controllers
                 
                 if (existingMovie == null)
                 {
-                    // Fetch movie details from TMDB
-                    var movieDetails = await _tmdbService.GetMovieDetailsAsync(reviewDto.MovieId);
+                    try {
+                        var movieDetails = await _tmdbService.GetMovieDetailsAsync(reviewDto.MovieId);
 
-                    existingMovie = new Movie
+                        // Chuyển đổi thời gian local sang UTC trước khi lưu
+                        var utcReviewDate = DateTime.UtcNow;
+
+                        existingMovie = new Movie
+                        {
+                            Id = movieDetails.Id,
+                            Title = movieDetails.Title,
+                            Overview = movieDetails.Overview,
+                            PosterPath = movieDetails.PosterPath,
+                            ReleaseDate = movieDetails.ReleaseDate.ToUniversalTime(), // Chuyển sang UTC
+                            Rating = reviewDto.Rating,
+                            Comment = reviewDto.Comment,
+                            ReviewDate = utcReviewDate, // Sử dụng UTC time
+                        };
+
+                        await _context.Movies.AddAsync(existingMovie);
+                    }
+                    catch (Exception tmdbEx)
                     {
-                        Id = movieDetails.Id,
-                        Title = movieDetails.Title,
-                        Overview = movieDetails.Overview,
-                        PosterPath = movieDetails.PosterPath,
-                        ReleaseDate = movieDetails.ReleaseDate,
-                        Rating = reviewDto.Rating,
-                        Comment = reviewDto.Comment,
-                        // UTC+7
-                        ReviewDate = DateTime.UtcNow.AddHours(7),
-                    };
-
-                    await _context.Movies.AddAsync(existingMovie);
+                        return StatusCode(500, $"TMDB Error: {tmdbEx.Message}");
+                    }
                 }
                 else
                 {
                     existingMovie.Rating = reviewDto.Rating;
                     existingMovie.Comment = reviewDto.Comment;
-                    existingMovie.ReviewDate = DateTime.UtcNow.AddHours(7);
+                    existingMovie.ReviewDate = DateTime.UtcNow; // Sử dụng UTC time
                 }
 
-                await _context.SaveChangesAsync();
+                try {
+                    await _context.SaveChangesAsync();
+                }
+                catch (Exception dbEx)
+                {
+                    var innerMessage = dbEx.InnerException?.Message ?? "No inner exception";
+                    return StatusCode(500, $"Database Error: {dbEx.Message} - Inner Exception: {innerMessage}");
+                }
+                
                 return Ok(existingMovie);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return StatusCode(500, $"General Error: {ex.Message} - Stack Trace: {ex.StackTrace}");
             }
         }
 

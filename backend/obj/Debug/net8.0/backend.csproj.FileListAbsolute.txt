@@ -143,3 +143,5 @@ D:\2024\projects\kiet-films\backend\obj\Debug\net8.0\backend.genruntimeconfig.ca
 D:\2024\projects\kiet-films\backend\obj\Debug\net8.0\ref\backend.dll
 D:\2024\projects\kiet-films\backend\bin\Debug\net8.0\Npgsql.dll
 D:\2024\projects\kiet-films\backend\bin\Debug\net8.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll
+D:\2024\projects\kiet-films\backend\obj\Debug\net8.0\backend.sourcelink.json
+D:\2024\projects\kiet-films\backend\bin\Debug\net8.0\HealthChecks.NpgSql.dll

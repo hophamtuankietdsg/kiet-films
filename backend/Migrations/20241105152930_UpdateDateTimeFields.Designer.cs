@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241104163623_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20241105152930_UpdateDateTimeFields")]
+    partial class UpdateDateTimeFields
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

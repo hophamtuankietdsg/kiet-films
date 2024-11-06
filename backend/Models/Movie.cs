@@ -22,17 +22,23 @@ namespace backend.Models
 
         [MaxLength(500)]
         public string PosterPath { get; set; } = string.Empty;
+
+        [DataType(DataType.DateTime)]
         public DateTime ReleaseDate { get; set; }
+
         [NotMapped]
         public string FormattedReleaseDate => ReleaseDate != DateTime.MinValue 
-            ? ReleaseDate.ToString("dd/MM/yyyy") 
+            ? ReleaseDate.ToLocalTime().ToString("dd/MM/yyyy") 
             : "Chưa có ngày";
         public double Rating { get; set; }
 
         [MaxLength(1000)]
         public string Comment { get; set; } = string.Empty;
+
+        [DataType(DataType.DateTime)]
         public DateTime ReviewDate { get; set; }
+
         [NotMapped]
-        public string FormattedReviewDate => ReviewDate.ToString("dd/MM/yyyy HH:mm");
+        public string FormattedReviewDate => ReviewDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
     }
 }

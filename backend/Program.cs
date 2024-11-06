@@ -5,6 +5,14 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add logging
+builder.Services.AddLogging(logging =>
+{
+    logging.ClearProviders();
+    logging.AddConsole();
+    logging.AddDebug();
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -32,9 +40,25 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ITMDBService, TMDBService>();
 
-// Add DbContext
+// Add DbContext với logging
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), 
+        npgsqlOptions => 
+        {
+            npgsqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorCodesToAdd: null);
+        });
+    options.EnableSensitiveDataLogging();
+    options.EnableDetailedErrors();
+    options.LogTo(Console.WriteLine, LogLevel.Information);
+});
+
+// Add health checks
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!);
 
 var app = builder.Build();
 
@@ -42,8 +66,12 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 
 // Bật Swagger cho cả Production để test
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+    options.RoutePrefix = string.Empty;
+});
 app.UseSwagger();
-app.UseSwaggerUI();
 
 // Enable CORS
 app.UseCors();
@@ -53,6 +81,9 @@ app.UseRouting();
 app.UseAuthorization();
 
 // Add health check endpoint
+app.MapHealthChecks("/health");
+
+// Add API running check endpoint
 app.MapGet("/", () => "API is running!");
 
 app.MapControllers();
