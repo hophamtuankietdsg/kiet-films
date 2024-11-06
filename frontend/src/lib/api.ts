@@ -3,11 +3,13 @@ import { Movie } from '@/types/movie';
 
 export async function getRatedMovies(): Promise<Movie[]> {
   try {
-    const baseUrl = API_URL.production; // Luôn dùng URL production
+    const baseUrl = API_URL.production;
 
     const res = await fetch(`${baseUrl}/api/movies/rated`, {
       method: 'GET',
-      cache: 'no-cache',
+      next: {
+        revalidate: 3600,
+      },
       headers: {
         Accept: 'application/json',
       },
