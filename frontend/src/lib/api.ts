@@ -27,3 +27,26 @@ export async function getRatedMovies(): Promise<Movie[]> {
     return [];
   }
 }
+
+export async function toggleMovieVisibility(
+  movieId: number
+): Promise<{ isHidden: boolean }> {
+  try {
+    const baseUrl = API_URL.production;
+    const res = await fetch(`${baseUrl}/api/movies/${movieId}/visibility`, {
+      method: 'PATCH',
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to toggle movie visibility');
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error('Error toggleing movie visibility', error);
+    throw error;
+  }
+}

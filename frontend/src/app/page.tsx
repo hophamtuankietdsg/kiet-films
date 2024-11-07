@@ -17,8 +17,9 @@ export default function Home() {
   useEffect(() => {
     const fetchMovies = async () => {
       const data = await getRatedMovies();
-      setMovies(data);
-      setFilteredMovies(data);
+      const visibleMovie = data.filter((movie) => !movie.isHidden);
+      setMovies(visibleMovie);
+      setFilteredMovies(visibleMovie);
     };
     fetchMovies();
   }, []);

@@ -7,4 +7,5 @@ export interface Movie {
   rating: number;
   comment: string;
   reviewDate: string;
+  isHidden: boolean;
 }
