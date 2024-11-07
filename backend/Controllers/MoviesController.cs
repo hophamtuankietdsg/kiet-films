@@ -115,6 +115,7 @@ namespace backend.Controllers
                         m.Rating,
                         m.Comment,
                         ReviewDate = m.FormattedReviewDate,
+                        m.IsHidden
                     })
                     .ToListAsync();
                 return Ok(ratedMovies);
@@ -122,6 +123,53 @@ namespace backend.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteMovie(int id)
+        {
+            try
+            {
+                var movie = await _context.Movies.FindAsync(id);
+                if (movie == null)
+                {
+                    return NotFound($"Movie with ID {id} not found");
+                }
+
+                _context.Movies.Remove(movie);
+                await _context.SaveChangesAsync();
+
+                return Ok(new {message = $"Movie '{movie.Title}' deleted successfully!"});
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error deleting movie: {ex.Message}");
+            }
+        }
+
+        [HttpPatch("{id}/visibility")]
+        public async Task<IActionResult> ToggleMovieVisibility(int id)
+        {
+            try
+            {
+                var movie = await _context.Movies.FindAsync(id);
+                if (movie == null)
+                {
+                    return NotFound($"Movie with ID {id} not found!");
+                }
+
+                movie.IsHidden = !movie.IsHidden;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { 
+                    message = $"Movie '{movie.Title}' is now {(movie.IsHidden ? "hidden" : "visible")}",
+                    isHidden = movie.IsHidden
+                });
+            }
+            catch (Exception ex)
+            {
+               return StatusCode(500, $"Error toggling movie visibility: {ex.Message}");
             }
         }
     }

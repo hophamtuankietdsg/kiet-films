@@ -40,5 +40,7 @@ namespace backend.Models
 
         [NotMapped]
         public string FormattedReviewDate => ReviewDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+
+        public bool IsHidden { get; set; }
     }
 }
