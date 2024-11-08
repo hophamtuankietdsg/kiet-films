@@ -6,10 +6,10 @@ using backend.DTOs;
 
 namespace backend.Models
 {
-    public class SearchResult
+    public class SearchResult<T>
     {
         public int Page { get; set; }
-        public List<MovieDto> Results { get; set; } = new();
+        public List<T> Results { get; set; } = new();
         public int TotalPages { get; set; }
         public int TotalResults { get; set; }
     }

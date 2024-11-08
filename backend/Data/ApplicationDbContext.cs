@@ -15,20 +15,31 @@ namespace backend.Data
         }
 
         public DbSet<Movie> Movies { get; set; }
+        public DbSet<TVShow> TVShows { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Movie>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).ValueGeneratedNever(); // ID sẽ không tự động generate
-            entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
-            entity.Property(e => e.Overview).HasMaxLength(2000);
-            entity.Property(e => e.PosterPath).HasMaxLength(500);
-            entity.Property(e => e.Comment).HasMaxLength(1000);
-        });
-        }
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedNever(); // ID sẽ không tự động generate
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
+                entity.Property(e => e.Overview).HasMaxLength(2000);
+                entity.Property(e => e.PosterPath).HasMaxLength(500);
+                entity.Property(e => e.Comment).HasMaxLength(1000);
+            });
+
+            modelBuilder.Entity<TVShow>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).ValueGeneratedNever();
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+                entity.Property(e => e.Overview).HasMaxLength(2000);
+                entity.Property(e => e.PosterPath).HasMaxLength(500);
+                entity.Property(e => e.Comment).HasMaxLength(1000);
+            });
+        } 
     }
 }

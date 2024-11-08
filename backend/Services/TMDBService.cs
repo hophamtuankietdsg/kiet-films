@@ -10,9 +10,12 @@ namespace backend.Services
 {
     public interface ITMDBService
     {
-        Task<SearchResult> SearchMoviesAsync(string query);
+        Task<SearchResult<MovieDto>> SearchMoviesAsync(string query);
         Task<MovieDto> GetMovieDetailsAsync(int movieId);
+        Task<SearchResult<TVShowDto>> SearchTVShowsAsync(string query);
+        Task<TVShowDto> GetTVShowDetailsAsync(int tvShowId);
     }
+
     public class TMDBService : ITMDBService
     {
         private readonly HttpClient _httpClient;
@@ -28,7 +31,7 @@ namespace backend.Services
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
         }
 
-        public async Task<SearchResult> SearchMoviesAsync(string query)
+        public async Task<SearchResult<MovieDto>> SearchMoviesAsync(string query)
         {
             var url = $"{BaseUrl}/search/movie?query={query}&include_adult=false&language=en-US&page=1";
             var request = new HttpRequestMessage
@@ -39,21 +42,50 @@ namespace backend.Services
 
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<SearchResult>() ?? new SearchResult();
+            return await response.Content.ReadFromJsonAsync<SearchResult<MovieDto>>() ?? new SearchResult<MovieDto>();
         }
 
         public async Task<MovieDto> GetMovieDetailsAsync(int movieId)
-    {
-        var url = $"{BaseUrl}/movie/{movieId}?language=en-US";
-        var request = new HttpRequestMessage
         {
-            Method = HttpMethod.Get,
-            RequestUri = new Uri(url)
-        };
+            var url = $"{BaseUrl}/movie/{movieId}?language=en-US";
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(url)
+            };
 
-        var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<MovieDto>() ?? new MovieDto();
-    }
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<MovieDto>() ?? new MovieDto();
+        }
+
+        // TV Shows
+        public async Task<SearchResult<TVShowDto>> SearchTVShowsAsync(string query)
+        {
+            var url = $"{BaseUrl}/search/tv?query={query}&include_adult=false&language=en-US&page=1";
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(url)
+            };
+
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<SearchResult<TVShowDto>>() ?? new SearchResult<TVShowDto>();
+        }
+
+        public async Task<TVShowDto> GetTVShowDetailsAsync(int tvShowId)
+        {
+            var url = $"{BaseUrl}/tv/{tvShowId}?language=en-US";
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(url)
+            };
+
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<TVShowDto>() ?? new TVShowDto();
+        }
     }
 }
