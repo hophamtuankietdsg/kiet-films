@@ -1,3 +1,4 @@
+import { TVShow } from '@/types/tvShow';
 import { API_URL } from './constants';
 import { Movie } from '@/types/movie';
 
@@ -48,5 +49,32 @@ export async function toggleMovieVisibility(
   } catch (error) {
     console.error('Error toggleing movie visibility', error);
     throw error;
+  }
+}
+
+export async function getRatedTVShows(): Promise<TVShow[]> {
+  try {
+    const baseUrl = API_URL.production;
+
+    const res = await fetch(`${baseUrl}/api/tvshows/rated`, {
+      method: 'GET',
+      next: {
+        revalidate: 3600,
+      },
+      headers: {
+        Accept: 'application/json',
+      },
+    });
+
+    if (!res.ok) {
+      console.error('Response not OK:', await res.text());
+      throw new Error('Failed to fetch rated movies');
+    }
+
+    const data = await res.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching rated TV Shows:', error);
+    return [];
   }
 }

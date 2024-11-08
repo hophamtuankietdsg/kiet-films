@@ -14,21 +14,19 @@ export default function Navbar() {
               </span>
             </Link>
           </div>
-          <div className="hidden md:block">
-            <div className="flex items-baseline space-x-4">
-              <Link
-                href="/"
-                className="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Home
-              </Link>
-              <Link
-                href="/search"
-                className="text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Search
-              </Link>
-            </div>
+          <div className="flex items-baseline space-x-2 sm:space-x-4">
+            <Link
+              href="/"
+              className="px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-500 hover:bg-gray-100 dark:hover:text-blue-400 dark:hover:bg-gray-700 transition-colors"
+            >
+              Movies
+            </Link>
+            <Link
+              href="/tv-series"
+              className="px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-500 hover:bg-gray-100 dark:hover:text-blue-400 dark:hover:bg-gray-700 transition-colors"
+            >
+              TV Series
+            </Link>
           </div>
         </div>
       </div>
