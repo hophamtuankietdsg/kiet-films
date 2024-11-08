@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using backend.Data;
 using backend.DTOs;
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace backend.Controllers
 {
@@ -100,7 +94,8 @@ namespace backend.Controllers
                         FirstAirDate = t.FormattedFirstAirDate,
                         t.Rating,
                         t.Comment,
-                        ReviewDate = t.FormattedReviewDate
+                        ReviewDate = t.FormattedReviewDate,
+                        t.IsHidden
                     })
                     .ToListAsync();
                 return Ok(ratedTVShows);
@@ -108,6 +103,53 @@ namespace backend.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTVShow(int id)
+        {
+            try
+            {
+                var tvShow = await _context.TVShows.FindAsync(id);
+                if (tvShow == null)
+                {
+                    return NotFound($"TV Show with ID {id} not found!");
+                }
+
+                _context.TVShows.Remove(tvShow);
+                await _context.SaveChangesAsync();
+
+                return Ok(new { message = $"TV Show '{tvShow.Name}' deleted successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error deleting TV Show: {ex.Message}");
+            }
+        }
+
+        [HttpPatch("{id}/visibility")]
+        public async Task<IActionResult> ToggleTVShowVisibility(int id)
+        {
+            try
+            {
+                var tvShow = await _context.TVShows.FindAsync(id);
+                if (tvShow == null)
+                {
+                    return NotFound($"TV Show with ID {id} not found!");
+                }
+
+                tvShow.IsHidden = !tvShow.IsHidden;
+                await _context.SaveChangesAsync();
+
+                return Ok(new { 
+                    message = $"Movie '{tvShow.Name}' is now {(tvShow.IsHidden ? "hidden" : "visible")}",
+                    isHidden = tvShow.IsHidden
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error toggling TV Show visibility: {ex.Message}");
             }
         }
     }
