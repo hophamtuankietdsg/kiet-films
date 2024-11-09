@@ -5,6 +5,7 @@ import { Badge } from '../ui/badge';
 import { Calendar, Clock, Star } from 'lucide-react';
 import { TV_GENRES } from '@/lib/constants';
 import { genreColors } from '@/lib/genreColors';
+import { formatDate, getYearFromDate } from '@/lib/utils';
 
 interface TVShowCardProps {
   tvShow: TVShow;
@@ -14,12 +15,9 @@ export default function TVShowCard({ tvShow }: TVShowCardProps) {
   const rating = tvShow.rating?.toString() || 'N/A';
 
   const year = tvShow.firstAirDate
-    ? new Date(tvShow.firstAirDate).getFullYear().toString()
+    ? getYearFromDate(tvShow.firstAirDate)
     : 'N/A';
-
-  const reviewDate = tvShow.reviewDate
-    ? new Date(tvShow.reviewDate).toLocaleDateString()
-    : 'N/A';
+  const reviewDate = tvShow.reviewDate ? formatDate(tvShow.reviewDate) : 'N/A';
 
   const genres = tvShow.genreIds
     ? tvShow.genreIds

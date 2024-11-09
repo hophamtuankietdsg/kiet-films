@@ -5,6 +5,7 @@ import { Badge } from './ui/badge';
 import { Star, Calendar, Clock } from 'lucide-react';
 import { MOVIE_GENRES } from '@/lib/constants';
 import { genreColors } from '@/lib/genreColors';
+import { formatDate, getYearFromDate } from '@/lib/utils';
 
 interface MovieCardProps {
   movie: Movie;
@@ -24,12 +25,9 @@ export default function MovieCard({ movie }: MovieCardProps) {
 
   // Xử lý ngày tháng an toàn
   const releaseYear = movie.releaseDate
-    ? new Date(movie.releaseDate).getFullYear().toString()
+    ? getYearFromDate(movie.releaseDate)
     : 'N/A';
-
-  const reviewDate = movie.reviewDate
-    ? new Date(movie.reviewDate).toLocaleDateString()
-    : 'N/A';
+  const reviewDate = movie.reviewDate ? formatDate(movie.reviewDate) : 'N/A';
 
   const posterUrl = movie.posterPath
     ? `https://image.tmdb.org/t/p/w500${movie.posterPath}`
