@@ -13,11 +13,15 @@ namespace backend.Controllers
     {
         private readonly ITMDBService _tmdbService;
         private readonly ApplicationDbContext _context;
+        private readonly ICacheService _cacheService;
+        private const string RATED_MOVIES_CACHE_KEY = "rated_movies";
+        private const string MOVIE_DETAILS_CACHE_PREFIX = "movie_details_";
 
-        public MoviesController(ITMDBService tMDBService, ApplicationDbContext context)
+        public MoviesController(ITMDBService tMDBService, ApplicationDbContext context, ICacheService cacheService)
         {
             _tmdbService = tMDBService;
             _context = context;
+            _cacheService = cacheService;
         }
 
         [HttpGet("search")]
@@ -25,7 +29,21 @@ namespace backend.Controllers
         {
             try
             {
+                // Cache key for search results
+                string cacheKey = $"movie_search_{query.ToLower()}";
+                
+                // Try get from cache first
+                var cachedResult = await _cacheService.GetAsync<SearchResult<MovieDto>>(cacheKey);
+                if (cachedResult != null)
+                {
+                    return Ok(cachedResult);
+                }
+
                 var result = await _tmdbService.SearchMoviesAsync(query);
+                
+                // Cache search results for 1 hour
+                await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(1));
+                
                 return Ok(result);
             }
             catch (Exception ex)
@@ -45,10 +63,18 @@ namespace backend.Controllers
                 if (existingMovie == null)
                 {
                     try {
-                        var movieDetails = await _tmdbService.GetMovieDetailsAsync(reviewDto.MovieId);
-                        var utcReviewDate = DateTime.UtcNow;
+                        // Try get movie details from cache
+                        string detailsCacheKey = $"{MOVIE_DETAILS_CACHE_PREFIX}{reviewDto.MovieId}";
+                        var movieDetails = await _cacheService.GetAsync<MovieDto>(detailsCacheKey);
+                        
+                        if (movieDetails == null)
+                        {
+                            movieDetails = await _tmdbService.GetMovieDetailsAsync(reviewDto.MovieId);
+                            // Cache movie details for 24 hours
+                            await _cacheService.SetAsync(detailsCacheKey, movieDetails, TimeSpan.FromHours(24));
+                        }
 
-                        // Chuyển đổi List<int> thành string trước khi lưu
+                        var utcReviewDate = DateTime.UtcNow;
                         var genreIdsString = string.Join(",", movieDetails.GenreIds);
 
                         existingMovie = new Movie
@@ -57,7 +83,7 @@ namespace backend.Controllers
                             Title = movieDetails.Title,
                             Overview = movieDetails.Overview,
                             PosterPath = movieDetails.PosterPath,
-                            ReleaseDate = movieDetails.ReleaseDate.ToUniversalTime(), // Chuyển sang UTC
+                            ReleaseDate = movieDetails.ReleaseDate.ToUniversalTime(),
                             Rating = reviewDto.Rating,
                             Comment = reviewDto.Comment,
                             ReviewDate = utcReviewDate,
@@ -75,19 +101,18 @@ namespace backend.Controllers
                 {
                     existingMovie.Rating = reviewDto.Rating;
                     existingMovie.Comment = reviewDto.Comment;
-                    existingMovie.ReviewDate = DateTime.UtcNow; // Sử dụng UTC time
+                    existingMovie.ReviewDate = DateTime.UtcNow;
                 }
 
                 try {
                     await _context.SaveChangesAsync();
+                    await _cacheService.RemoveAsync(RATED_MOVIES_CACHE_KEY);
+                    return Ok(existingMovie);
                 }
-                catch (Exception dbEx)
+                catch (Exception ex)
                 {
-                    var innerMessage = dbEx.InnerException?.Message ?? "No inner exception";
-                    return StatusCode(500, $"Database Error: {dbEx.Message} - Inner Exception: {innerMessage}");
+                    return StatusCode(500, ex.Message);
                 }
-                
-                return Ok(existingMovie);
             }
             catch (Exception ex)
             {
@@ -100,7 +125,15 @@ namespace backend.Controllers
         {
             try
             {
+                var cachedMovies = await _cacheService.GetAsync<List<object>>(RATED_MOVIES_CACHE_KEY);
+                if (cachedMovies != null)
+                {
+                    return Ok(cachedMovies);
+                }
+
                 var ratedMovies = await _context.Movies
+                    .AsNoTracking()
+                    .Where(m => !m.IsHidden) // Only get visible movies
                     .OrderByDescending(m => m.ReviewDate)
                     .Select(m => new
                     {
@@ -116,6 +149,8 @@ namespace backend.Controllers
                         m.GenreIds,
                     })
                     .ToListAsync();
+
+                await _cacheService.SetAsync(RATED_MOVIES_CACHE_KEY, ratedMovies, TimeSpan.FromMinutes(5));
                 return Ok(ratedMovies);
             }
             catch (Exception ex)
@@ -137,6 +172,10 @@ namespace backend.Controllers
 
                 _context.Movies.Remove(movie);
                 await _context.SaveChangesAsync();
+
+                // Clear related caches
+                await _cacheService.RemoveAsync(RATED_MOVIES_CACHE_KEY);
+                await _cacheService.RemoveAsync($"{MOVIE_DETAILS_CACHE_PREFIX}{id}");
 
                 return Ok(new {message = $"Movie '{movie.Title}' deleted successfully!"});
             }
@@ -160,6 +199,9 @@ namespace backend.Controllers
                 movie.IsHidden = !movie.IsHidden;
                 await _context.SaveChangesAsync();
 
+                // Clear rated movies cache when visibility changes
+                await _cacheService.RemoveAsync(RATED_MOVIES_CACHE_KEY);
+
                 return Ok(new { 
                     message = $"Movie '{movie.Title}' is now {(movie.IsHidden ? "hidden" : "visible")}",
                     isHidden = movie.IsHidden
@@ -167,7 +209,7 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
-               return StatusCode(500, $"Error toggling movie visibility: {ex.Message}");
+            return StatusCode(500, $"Error toggling movie visibility: {ex.Message}");
             }
         }
     }

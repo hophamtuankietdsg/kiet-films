@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Text.Json;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -71,6 +72,47 @@ builder.Services.AddHealthChecks()
         name: "database",
         tags: new[] { "db", "sql", "postgresql" })
     .AddCheck("self", () => HealthCheckResult.Healthy());
+
+// Add Redis configuration
+builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
+{
+    var configuration = builder.Configuration.GetConnectionString("Redis") 
+        ?? throw new InvalidOperationException("Redis connection string is not configured");
+    
+    var options = ConfigurationOptions.Parse(configuration);
+    options.AbortOnConnectFail = false;
+    options.ConnectTimeout = 10000;
+    options.SyncTimeout = 10000;
+    options.ConnectRetry = 3;
+    options.KeepAlive = 60;
+    
+    return ConnectionMultiplexer.Connect(options);
+});
+
+// Add Redis caching
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.ConnectionMultiplexerFactory = async () =>
+    {
+        var connection = builder.Configuration.GetConnectionString("Redis")
+            ?? throw new InvalidOperationException("Redis connection string is not configured");
+            
+        var redisOptions = ConfigurationOptions.Parse(connection);
+        redisOptions.AbortOnConnectFail = false;
+        redisOptions.ConnectTimeout = 10000;
+        redisOptions.SyncTimeout = 10000;
+        redisOptions.ConnectRetry = 3;
+        redisOptions.KeepAlive = 60;
+        
+        var multiplexer = await ConnectionMultiplexer.ConnectAsync(redisOptions);
+        return multiplexer;
+    };
+    options.InstanceName = "MovieRating_";
+});
+
+// Add caching service
+builder.Services.AddScoped<ICacheService, RedisCacheService>();
+
 
 var app = builder.Build();
 

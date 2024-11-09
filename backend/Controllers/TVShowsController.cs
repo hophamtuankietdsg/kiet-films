@@ -13,11 +13,14 @@ namespace backend.Controllers
     {
         private readonly ITMDBService _tmdbService;
         private readonly ApplicationDbContext _context;
+        private readonly ICacheService _cacheService;
+        private const string RATED_TVSHOWS_CACHE_KEY = "rated_tvshows";
 
-        public TVShowsController(ITMDBService tMDBService ,ApplicationDbContext context)
+        public TVShowsController(ITMDBService tMDBService ,ApplicationDbContext context, ICacheService cacheService)
         {
             _tmdbService = tMDBService;
             _context = context;
+            _cacheService = cacheService;
         }
 
         [HttpGet("search")]
@@ -46,8 +49,6 @@ namespace backend.Controllers
                 {
                     var tvShowDetails = await _tmdbService.GetTVShowDetailsAsync(reviewDto.TVShowId);
                     var utcReviewDate = DateTime.UtcNow;
-
-                    // Chuyển đổi List<int> thành string trước khi lưu
                     var genreIdsString = string.Join(",", tvShowDetails.GenreIds);
 
                     existingTVShow = new TVShow
@@ -73,6 +74,10 @@ namespace backend.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+                
+                // Xóa cache để buộc refresh
+                await _cacheService.RemoveAsync(RATED_TVSHOWS_CACHE_KEY);
+                
                 return Ok(existingTVShow);
             }
             catch (Exception ex)
@@ -86,7 +91,16 @@ namespace backend.Controllers
         {
             try
             {
+                // Thử lấy từ cache trước
+                var cachedTVShows = await _cacheService.GetAsync<List<object>>(RATED_TVSHOWS_CACHE_KEY);
+                if (cachedTVShows != null)
+                {
+                    return Ok(cachedTVShows);
+                }
+
+                // Nếu không có trong cache, lấy từ database
                 var ratedTVShows = await _context.TVShows
+                    .AsNoTracking()
                     .Where(t => !t.IsHidden)
                     .OrderByDescending(t => t.ReviewDate)
                     .Select(t => new
@@ -103,6 +117,10 @@ namespace backend.Controllers
                         t.GenreIds,
                     })
                     .ToListAsync();
+
+                // Lưu vào cache
+                await _cacheService.SetAsync(RATED_TVSHOWS_CACHE_KEY, ratedTVShows, TimeSpan.FromMinutes(5));
+
                 return Ok(ratedTVShows);
             }
             catch (Exception ex)
@@ -124,6 +142,9 @@ namespace backend.Controllers
 
                 _context.TVShows.Remove(tvShow);
                 await _context.SaveChangesAsync();
+
+                // Xóa cache khi xóa TV Show
+                await _cacheService.RemoveAsync(RATED_TVSHOWS_CACHE_KEY);
 
                 return Ok(new { message = $"TV Show '{tvShow.Name}' deleted successfully!" });
             }
@@ -147,8 +168,11 @@ namespace backend.Controllers
                 tvShow.IsHidden = !tvShow.IsHidden;
                 await _context.SaveChangesAsync();
 
+                // Xóa cache khi thay đổi visibility
+                await _cacheService.RemoveAsync(RATED_TVSHOWS_CACHE_KEY);
+
                 return Ok(new { 
-                    message = $"Movie '{tvShow.Name}' is now {(tvShow.IsHidden ? "hidden" : "visible")}",
+                    message = $"TV Show '{tvShow.Name}' is now {(tvShow.IsHidden ? "hidden" : "visible")}",
                     isHidden = tvShow.IsHidden
                 });
             }

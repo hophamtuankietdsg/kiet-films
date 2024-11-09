@@ -95,6 +95,14 @@ namespace backend.Data
             };
 
             modelBuilder.Entity<Genre>().HasData(genres);
-        } 
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+            
+            // Enable second level caching
+            optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+        }
     }
 }
