@@ -11,30 +11,43 @@ interface TVShowCardProps {
 }
 
 export default function TVShowCard({ tvShow }: TVShowCardProps) {
-  const getYear = (dateStr: string) => dateStr.split('/')[2];
-  const rating =
-    typeof tvShow.rating === 'number' ? tvShow.rating.toFixed(1) : 'N/A';
-  const year = tvShow.firstAirDate ? getYear(tvShow.firstAirDate) : 'N/A';
+  const rating = tvShow.rating?.toString() || 'N/A';
+
+  const year = tvShow.firstAirDate
+    ? new Date(tvShow.firstAirDate).getFullYear().toString()
+    : 'N/A';
+
   const reviewDate = tvShow.reviewDate
-    ? tvShow.reviewDate.split(' ')[0]
+    ? new Date(tvShow.reviewDate).toLocaleDateString()
     : 'N/A';
 
   const genres = tvShow.genreIds
-    .split(',')
-    .map((id) => TV_GENRES[id])
-    .filter(Boolean)
-    .slice(0, 3);
+    ? tvShow.genreIds
+        .split(',')
+        .map((id) => TV_GENRES[id])
+        .filter(Boolean)
+        .slice(0, 3)
+    : [];
+
+  const posterUrl = tvShow.posterPath
+    ? `https://image.tmdb.org/t/p/w500${tvShow.posterPath}`
+    : '/images/movie-placeholder.png';
 
   return (
     <Card className="group relative flex flex-col h-full transition-all duration-300 rounded-lg overflow-hidden">
       <div className="relative aspect-[2/3] w-full overflow-hidden rounded-t-lg">
         <Image
-          src={`https://image.tmdb.org/t/p/w500${tvShow.posterPath}`}
-          alt={tvShow.name}
+          src={posterUrl}
+          alt={tvShow.name || 'TV Show poster'}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           priority
+          onError={(e) => {
+            // Xử lý lỗi load ảnh
+            const target = e.target as HTMLImageElement;
+            target.src = '/images/movie-placeholder.png';
+          }}
         />
         {/* Rating Badge */}
         <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex items-center gap-1 bg-black/80 backdrop-blur-sm rounded-full px-2 py-1 sm:px-3 sm:py-1.5 shadow-lg">

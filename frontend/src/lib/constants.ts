@@ -3,6 +3,12 @@ export const API_URL = {
   production: 'https://kiet-films.onrender.com',
 };
 
+export const getApiUrl = () => {
+  return process.env.NODE_ENV === 'production'
+    ? API_URL.production
+    : API_URL.development;
+};
+
 export const MOVIE_GENRES: { [key: string]: string } = {
   '28': 'Action',
   '12': 'Adventure',

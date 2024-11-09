@@ -1,19 +1,16 @@
 import { TVShow } from '@/types/tvShow';
-import { API_URL } from './constants';
+import { API_URL, getApiUrl } from './constants';
 import { Movie } from '@/types/movie';
 
 export async function getRatedMovies(): Promise<Movie[]> {
   try {
-    const baseUrl = API_URL.production;
-
+    const baseUrl = getApiUrl();
     const res = await fetch(`${baseUrl}/api/movies/rated`, {
       method: 'GET',
-      next: {
-        revalidate: 3600,
-      },
       headers: {
         Accept: 'application/json',
       },
+      cache: 'no-store',
     });
 
     if (!res.ok) {
@@ -22,7 +19,12 @@ export async function getRatedMovies(): Promise<Movie[]> {
     }
 
     const data = await res.json();
-    return data;
+    // Đảm bảo genreIds không bị undefined
+    return data.map((movie: Movie) => ({
+      ...movie,
+      genreIds: movie.genreIds || '',
+      posterPath: movie.posterPath || '',
+    }));
   } catch (error) {
     console.error('Error fetching rated movies:', error);
     return [];
@@ -33,7 +35,7 @@ export async function toggleMovieVisibility(
   movieId: number
 ): Promise<{ isHidden: boolean }> {
   try {
-    const baseUrl = API_URL.production;
+    const baseUrl = API_URL.development;
     const res = await fetch(`${baseUrl}/api/movies/${movieId}/visibility`, {
       method: 'PATCH',
       headers: {
@@ -54,25 +56,27 @@ export async function toggleMovieVisibility(
 
 export async function getRatedTVShows(): Promise<TVShow[]> {
   try {
-    const baseUrl = API_URL.production;
-
+    const baseUrl = getApiUrl();
     const res = await fetch(`${baseUrl}/api/tvshows/rated`, {
       method: 'GET',
-      next: {
-        revalidate: 3600,
-      },
       headers: {
         Accept: 'application/json',
       },
+      cache: 'no-store',
     });
 
     if (!res.ok) {
       console.error('Response not OK:', await res.text());
-      throw new Error('Failed to fetch rated movies');
+      throw new Error('Failed to fetch rated TV shows');
     }
 
     const data = await res.json();
-    return data;
+    // Đảm bảo genreIds không bị undefined
+    return data.map((tvShow: TVShow) => ({
+      ...tvShow,
+      genreIds: tvShow.genreIds || '',
+      posterPath: tvShow.posterPath || '',
+    }));
   } catch (error) {
     console.error('Error fetching rated TV Shows:', error);
     return [];

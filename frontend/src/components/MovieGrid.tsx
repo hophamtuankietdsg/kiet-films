@@ -23,8 +23,11 @@ const MovieGrid = ({ movies }: MovieGridProps) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-        {movies.map((movie) => (
-          <MovieCard key={movie.id} movie={movie} />
+        {movies.map((movie, index) => (
+          <MovieCard
+            key={`${movie.id}-${movie.reviewDate}-${index}`}
+            movie={movie}
+          />
         ))}
       </div>
     </div>

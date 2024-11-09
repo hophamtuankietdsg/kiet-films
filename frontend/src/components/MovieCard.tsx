@@ -12,27 +12,50 @@ interface MovieCardProps {
 
 export default function MovieCard({ movie }: MovieCardProps) {
   const genres = movie.genreIds
-    .split(',')
-    .map((id) => MOVIE_GENRES[id])
-    .filter(Boolean)
-    .slice(0, 3);
+    ? movie.genreIds
+        .split(',')
+        .map((id) => MOVIE_GENRES[id])
+        .filter(Boolean)
+        .slice(0, 3)
+    : [];
+
+  // Chuyển đổi rating thành chuỗi
+  const rating = movie.rating?.toString() || 'N/A';
+
+  // Xử lý ngày tháng an toàn
+  const releaseYear = movie.releaseDate
+    ? new Date(movie.releaseDate).getFullYear().toString()
+    : 'N/A';
+
+  const reviewDate = movie.reviewDate
+    ? new Date(movie.reviewDate).toLocaleDateString()
+    : 'N/A';
+
+  const posterUrl = movie.posterPath
+    ? `https://image.tmdb.org/t/p/w500${movie.posterPath}`
+    : '/images/movie-placeholder.png';
 
   return (
     <Card className="group relative flex flex-col h-full transition-all duration-300 rounded-lg overflow-hidden">
       <div className="relative aspect-[2/3] w-full overflow-hidden rounded-t-lg">
         <Image
-          src={`https://image.tmdb.org/t/p/w500${movie.posterPath}`}
-          alt={movie.title}
+          src={posterUrl}
+          alt={movie.title || 'Movie poster'}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105 rounded-t-lg"
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           priority
+          onError={(e) => {
+            // Xử lý lỗi load ảnh
+            const target = e.target as HTMLImageElement;
+            target.src = '/images/movie-placeholder.png';
+          }}
         />
         {/* Rating Badge */}
         <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex items-center gap-1 bg-black/80 backdrop-blur-sm rounded-full px-2 py-1 sm:px-3 sm:py-1.5 shadow-lg">
           <Star className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 fill-yellow-400" />
           <span className="font-bold text-xs sm:text-sm text-white">
-            {movie.rating.toFixed(1)}
+            {rating}
           </span>
         </div>
         {/* Gradient Overlay */}
@@ -58,11 +81,11 @@ export default function MovieCard({ movie }: MovieCardProps) {
         <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
           <div className="flex items-center gap-1 sm:gap-1.5">
             <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span>{new Date(movie.releaseDate).getFullYear()}</span>
+            <span>{releaseYear}</span>
           </div>
           <div className="flex items-center gap-1 sm:gap-1.5">
             <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span>{new Date(movie.reviewDate).toLocaleDateString()}</span>
+            <span>{reviewDate}</span>
           </div>
         </div>
         {movie.comment && (
