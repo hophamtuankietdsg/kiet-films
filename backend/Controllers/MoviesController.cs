@@ -14,14 +14,16 @@ namespace backend.Controllers
         private readonly ITMDBService _tmdbService;
         private readonly ApplicationDbContext _context;
         private readonly ICacheService _cacheService;
+        private readonly ILogger<MoviesController> _logger;
         private const string RATED_MOVIES_CACHE_KEY = "rated_movies";
         private const string MOVIE_DETAILS_CACHE_PREFIX = "movie_details_";
 
-        public MoviesController(ITMDBService tMDBService, ApplicationDbContext context, ICacheService cacheService)
+        public MoviesController(ITMDBService tMDBService, ApplicationDbContext context, ICacheService cacheService, ILogger<MoviesController> logger)
         {
             _tmdbService = tMDBService;
             _context = context;
             _cacheService = cacheService;
+            _logger = logger;
         }
 
         [HttpGet("search")]
@@ -133,7 +135,7 @@ namespace backend.Controllers
 
                 var ratedMovies = await _context.Movies
                     .AsNoTracking()
-                    .Where(m => !m.IsHidden) // Only get visible movies
+                    .Where(m => !m.IsHidden)
                     .OrderByDescending(m => m.ReviewDate)
                     .Select(m => new
                     {
@@ -141,20 +143,25 @@ namespace backend.Controllers
                         m.Title,
                         m.Overview,
                         m.PosterPath,
-                        ReleaseDate = m.FormattedReleaseDate,
+                        ReleaseDate = m.ReleaseDate.ToString("dd-MM-yyyy"), // Thay đổi format
                         m.Rating,
                         m.Comment,
-                        ReviewDate = m.FormattedReviewDate,
+                        ReviewDate = m.ReviewDate.ToString("dd-MM-yyyy"), // Thay đổi format
                         m.IsHidden,
                         m.GenreIds,
                     })
                     .ToListAsync();
 
-                await _cacheService.SetAsync(RATED_MOVIES_CACHE_KEY, ratedMovies, TimeSpan.FromMinutes(5));
+                if (ratedMovies != null && ratedMovies.Any())
+                {
+                    await _cacheService.SetAsync(RATED_MOVIES_CACHE_KEY, ratedMovies, TimeSpan.FromMinutes(5));
+                }
+
                 return Ok(ratedMovies);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error getting rated movies");
                 return StatusCode(500, ex.Message);
             }
         }

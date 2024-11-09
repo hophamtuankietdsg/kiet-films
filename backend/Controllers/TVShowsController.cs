@@ -14,13 +14,15 @@ namespace backend.Controllers
         private readonly ITMDBService _tmdbService;
         private readonly ApplicationDbContext _context;
         private readonly ICacheService _cacheService;
+        private readonly ILogger<MoviesController> _logger;
         private const string RATED_TVSHOWS_CACHE_KEY = "rated_tvshows";
 
-        public TVShowsController(ITMDBService tMDBService ,ApplicationDbContext context, ICacheService cacheService)
+        public TVShowsController(ITMDBService tMDBService ,ApplicationDbContext context, ICacheService cacheService, ILogger<MoviesController> logger)
         {
             _tmdbService = tMDBService;
             _context = context;
             _cacheService = cacheService;
+            _logger = logger;
         }
 
         [HttpGet("search")]
@@ -91,14 +93,12 @@ namespace backend.Controllers
         {
             try
             {
-                // Thử lấy từ cache trước
                 var cachedTVShows = await _cacheService.GetAsync<List<object>>(RATED_TVSHOWS_CACHE_KEY);
                 if (cachedTVShows != null)
                 {
                     return Ok(cachedTVShows);
                 }
 
-                // Nếu không có trong cache, lấy từ database
                 var ratedTVShows = await _context.TVShows
                     .AsNoTracking()
                     .Where(t => !t.IsHidden)
@@ -109,22 +109,25 @@ namespace backend.Controllers
                         t.Name,
                         t.Overview,
                         t.PosterPath,
-                        FirstAirDate = t.FormattedFirstAirDate,
+                        FirstAirDate = t.FirstAirDate.ToString("dd-MM-yyyy"), // Thay đổi format
                         t.Rating,
                         t.Comment,
-                        ReviewDate = t.FormattedReviewDate,
+                        ReviewDate = t.ReviewDate.ToString("dd-MM-yyyy"), // Thay đổi format
                         t.IsHidden,
                         t.GenreIds,
                     })
                     .ToListAsync();
 
-                // Lưu vào cache
-                await _cacheService.SetAsync(RATED_TVSHOWS_CACHE_KEY, ratedTVShows, TimeSpan.FromMinutes(5));
+                if (ratedTVShows != null && ratedTVShows.Any())
+                {
+                    await _cacheService.SetAsync(RATED_TVSHOWS_CACHE_KEY, ratedTVShows, TimeSpan.FromMinutes(5));
+                }
 
                 return Ok(ratedTVShows);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error getting rated TV shows");
                 return StatusCode(500, ex.Message);
             }
         }

@@ -12,16 +12,23 @@ namespace backend.Services
         private readonly IDistributedCache _cache;
         private readonly ILogger<RedisCacheService> _logger;
         private readonly DistributedCacheEntryOptions _defaultOptions;
+        private readonly JsonSerializerOptions _jsonOptions;
 
         public RedisCacheService(
-            IDistributedCache cache,
-            ILogger<RedisCacheService> logger)
+        IDistributedCache cache,
+        ILogger<RedisCacheService> logger)
         {
             _cache = cache;
             _logger = logger;
             _defaultOptions = new DistributedCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(10)
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+                SlidingExpiration = TimeSpan.FromMinutes(2)
+            };
+            _jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true
             };
         }
 
@@ -30,29 +37,40 @@ namespace backend.Services
             try
             {
                 var data = await _cache.GetStringAsync(key);
-                return data == null ? default : JsonSerializer.Deserialize<T>(data);
+                if (string.IsNullOrEmpty(data))
+                    return default;
+
+                return JsonSerializer.Deserialize<T>(data, _jsonOptions);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting cache for key {Key}", key);
+                await RemoveAsync(key);
                 return default;
             }
         }
 
         public async Task SetAsync<T>(string key, T value, TimeSpan? expirationTime = null)
         {
+            if (value == null) return;
+
             try
             {
                 var options = expirationTime.HasValue
-                    ? new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = expirationTime }
+                    ? new DistributedCacheEntryOptions 
+                    { 
+                        AbsoluteExpirationRelativeToNow = expirationTime,
+                        SlidingExpiration = TimeSpan.FromMinutes(2)
+                    }
                     : _defaultOptions;
 
-                var serializedData = JsonSerializer.Serialize(value);
+                var serializedData = JsonSerializer.Serialize(value, _jsonOptions);
                 await _cache.SetStringAsync(key, serializedData, options);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error setting cache for key {Key}", key);
+                await RemoveAsync(key);
             }
         }
 
