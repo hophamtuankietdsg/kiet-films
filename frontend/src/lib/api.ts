@@ -4,7 +4,7 @@ import { Movie } from '@/types/movie';
 
 export async function getRatedMovies(): Promise<Movie[]> {
   try {
-    const baseUrl = API_URL.development;
+    const baseUrl = API_URL.production;
 
     const res = await fetch(`${baseUrl}/api/movies/rated`, {
       method: 'GET',
@@ -33,7 +33,7 @@ export async function toggleMovieVisibility(
   movieId: number
 ): Promise<{ isHidden: boolean }> {
   try {
-    const baseUrl = API_URL.development;
+    const baseUrl = API_URL.production;
     const res = await fetch(`${baseUrl}/api/movies/${movieId}/visibility`, {
       method: 'PATCH',
       headers: {
@@ -54,7 +54,7 @@ export async function toggleMovieVisibility(
 
 export async function getRatedTVShows(): Promise<TVShow[]> {
   try {
-    const baseUrl = API_URL.development;
+    const baseUrl = API_URL.production;
 
     const res = await fetch(`${baseUrl}/api/tvshows/rated`, {
       method: 'GET',
