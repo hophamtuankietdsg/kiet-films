@@ -42,5 +42,22 @@ namespace backend.Models
         public string FormattedReviewDate => ReviewDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
 
         public bool IsHidden { get; set; }
+
+        public string GenreIds { get; set; } = string.Empty;
+
+        [NotMapped]
+        public List<int> Genres
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(GenreIds))
+                    return new List<int>();
+                return GenreIds.Split(',').Select(int.Parse).ToList();
+            }
+            set
+            {
+                GenreIds = string.Join(",", value);
+            }
+        }
     }
 }

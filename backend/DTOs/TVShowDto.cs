@@ -38,6 +38,9 @@ namespace backend.DTOs
                 return DateTime.MinValue;
             }
         }
+
+        [JsonPropertyName("genre_ids")]
+        public List<int> GenreIds { get; set; } = new List<int>();
     }
 
     public class TVShowReviewDto

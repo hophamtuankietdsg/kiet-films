@@ -46,9 +46,10 @@ namespace backend.Controllers
                 {
                     try {
                         var movieDetails = await _tmdbService.GetMovieDetailsAsync(reviewDto.MovieId);
-
-                        // Chuyển đổi thời gian local sang UTC trước khi lưu
                         var utcReviewDate = DateTime.UtcNow;
+
+                        // Chuyển đổi List<int> thành string trước khi lưu
+                        var genreIdsString = string.Join(",", movieDetails.GenreIds);
 
                         existingMovie = new Movie
                         {
@@ -59,7 +60,8 @@ namespace backend.Controllers
                             ReleaseDate = movieDetails.ReleaseDate.ToUniversalTime(), // Chuyển sang UTC
                             Rating = reviewDto.Rating,
                             Comment = reviewDto.Comment,
-                            ReviewDate = utcReviewDate, // Sử dụng UTC time
+                            ReviewDate = utcReviewDate,
+                            GenreIds = genreIdsString
                         };
 
                         await _context.Movies.AddAsync(existingMovie);
@@ -110,7 +112,8 @@ namespace backend.Controllers
                         m.Rating,
                         m.Comment,
                         ReviewDate = m.FormattedReviewDate,
-                        m.IsHidden
+                        m.IsHidden,
+                        m.GenreIds,
                     })
                     .ToListAsync();
                 return Ok(ratedMovies);

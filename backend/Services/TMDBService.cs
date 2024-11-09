@@ -47,7 +47,7 @@ namespace backend.Services
 
         public async Task<MovieDto> GetMovieDetailsAsync(int movieId)
         {
-            var url = $"{BaseUrl}/movie/{movieId}?language=en-US";
+            var url = $"{BaseUrl}/movie/{movieId}?language=en-US&append_to_response=genres";
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
@@ -56,7 +56,27 @@ namespace backend.Services
 
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<MovieDto>() ?? new MovieDto();
+            var movieDetails = await response.Content.ReadFromJsonAsync<MovieDto>();
+            
+            // Lấy genre_ids từ kết quả search
+            var searchUrl = $"{BaseUrl}/search/movie?query={movieDetails?.Title}&include_adult=false&language=en-US&page=1";
+            var searchRequest = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(searchUrl)
+            };
+
+            var searchResponse = await _httpClient.SendAsync(searchRequest);
+            searchResponse.EnsureSuccessStatusCode();
+            var searchResult = await searchResponse.Content.ReadFromJsonAsync<SearchResult<MovieDto>>();
+            
+            var movie = searchResult?.Results.FirstOrDefault(m => m.Id == movieId);
+            if (movie != null && movieDetails != null)
+            {
+                movieDetails.GenreIds = movie.GenreIds;
+            }
+
+            return movieDetails ?? new MovieDto();
         }
 
         // TV Shows
@@ -76,7 +96,7 @@ namespace backend.Services
 
         public async Task<TVShowDto> GetTVShowDetailsAsync(int tvShowId)
         {
-            var url = $"{BaseUrl}/tv/{tvShowId}?language=en-US";
+            var url = $"{BaseUrl}/tv/{tvShowId}?language=en-US&append_to_response=genres";
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
@@ -85,7 +105,27 @@ namespace backend.Services
 
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<TVShowDto>() ?? new TVShowDto();
+            var tvShowDetails = await response.Content.ReadFromJsonAsync<TVShowDto>();
+
+            // Lấy genre_ids từ kết quả search
+            var searchUrl = $"{BaseUrl}/search/tv?query={tvShowDetails?.Name}&include_adult=false&language=en-US&page=1";
+            var searchRequest = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(searchUrl)
+            };
+
+            var searchResponse = await _httpClient.SendAsync(searchRequest);
+            searchResponse.EnsureSuccessStatusCode();
+            var searchResult = await searchResponse.Content.ReadFromJsonAsync<SearchResult<TVShowDto>>();
+            
+            var tvShow = searchResult?.Results.FirstOrDefault(t => t.Id == tvShowId);
+            if (tvShow != null && tvShowDetails != null)
+            {
+                tvShowDetails.GenreIds = tvShow.GenreIds;
+            }
+
+            return tvShowDetails ?? new TVShowDto();
         }
     }
 }

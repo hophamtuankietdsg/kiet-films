@@ -47,6 +47,9 @@ namespace backend.Controllers
                     var tvShowDetails = await _tmdbService.GetTVShowDetailsAsync(reviewDto.TVShowId);
                     var utcReviewDate = DateTime.UtcNow;
 
+                    // Chuyển đổi List<int> thành string trước khi lưu
+                    var genreIdsString = string.Join(",", tvShowDetails.GenreIds);
+
                     existingTVShow = new TVShow
                     {
                         Id = tvShowDetails.Id,
@@ -57,6 +60,7 @@ namespace backend.Controllers
                         Rating = reviewDto.Rating,
                         Comment = reviewDto.Comment,
                         ReviewDate = utcReviewDate,
+                        GenreIds = genreIdsString
                     };
 
                     await _context.TVShows.AddAsync(existingTVShow);
@@ -95,7 +99,8 @@ namespace backend.Controllers
                         t.Rating,
                         t.Comment,
                         ReviewDate = t.FormattedReviewDate,
-                        t.IsHidden
+                        t.IsHidden,
+                        t.GenreIds,
                     })
                     .ToListAsync();
                 return Ok(ratedTVShows);
