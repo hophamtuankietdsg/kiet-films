@@ -12,12 +12,11 @@ export default function TVSeriesPage() {
   const [tvShows, setTVShows] = useState<TVShow[]>([]);
   const [filteredTVShows, setFilteredTVShows] = useState<TVShow[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('default');
+  const [sortBy, setSortBy] = useState('release-desc');
 
   useEffect(() => {
     const fetchTVShows = async () => {
       const data = await getRatedTVShows();
-      console.log('TV Shows data:', data);
       const visibleTVShows = data.filter((show) => !show.isHidden);
       setTVShows(visibleTVShows);
       setFilteredTVShows(visibleTVShows);
@@ -36,18 +35,74 @@ export default function TVSeriesPage() {
     }
 
     // Apply sorting
-    if (sortBy !== 'default') {
-      result.sort((a, b) => {
-        switch (sortBy) {
-          case 'rating-desc':
-            return b.rating - a.rating;
-          case 'rating-asc':
-            return a.rating - b.rating;
-          default:
-            return 0;
+    result.sort((a, b) => {
+      switch (sortBy) {
+        case 'release-desc': {
+          const [dayA, monthA, yearA] = a.firstAirDate.split('/');
+          const [dayB, monthB, yearB] = b.firstAirDate.split('/');
+          const dateA = new Date(
+            parseInt(yearA),
+            parseInt(monthA) - 1,
+            parseInt(dayA)
+          );
+          const dateB = new Date(
+            parseInt(yearB),
+            parseInt(monthB) - 1,
+            parseInt(dayB)
+          );
+          return dateB.getTime() - dateA.getTime();
         }
-      });
-    }
+        case 'release-asc': {
+          const [dayA, monthA, yearA] = a.firstAirDate.split('/');
+          const [dayB, monthB, yearB] = b.firstAirDate.split('/');
+          const dateA = new Date(
+            parseInt(yearA),
+            parseInt(monthA) - 1,
+            parseInt(dayA)
+          );
+          const dateB = new Date(
+            parseInt(yearB),
+            parseInt(monthB) - 1,
+            parseInt(dayB)
+          );
+          return dateA.getTime() - dateB.getTime();
+        }
+        case 'rating-desc':
+          return b.rating - a.rating;
+        case 'rating-asc':
+          return a.rating - b.rating;
+        case 'review-date': {
+          const [dayA, monthA, yearA] = a.reviewDate.split('/');
+          const [dayB, monthB, yearB] = b.reviewDate.split('/');
+          const dateA = new Date(
+            parseInt(yearA),
+            parseInt(monthA) - 1,
+            parseInt(dayA)
+          );
+          const dateB = new Date(
+            parseInt(yearB),
+            parseInt(monthB) - 1,
+            parseInt(dayB)
+          );
+          return dateB.getTime() - dateA.getTime();
+        }
+        default: {
+          const [dayA, monthA, yearA] = a.firstAirDate.split('/');
+          const [dayB, monthB, yearB] = b.firstAirDate.split('/');
+          const dateA = new Date(
+            parseInt(yearA),
+            parseInt(monthA) - 1,
+            parseInt(dayA)
+          );
+          const dateB = new Date(
+            parseInt(yearB),
+            parseInt(monthB) - 1,
+            parseInt(dayB)
+          );
+          return dateB.getTime() - dateA.getTime();
+        }
+      }
+    });
 
     setFilteredTVShows(result);
   }, [tvShows, searchQuery, sortBy]);

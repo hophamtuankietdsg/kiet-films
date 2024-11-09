@@ -32,16 +32,22 @@ const MovieFilters = ({
             className="max-w-md"
           />
         </div>
-        <Select value={sortBy} onValueChange={onSortChange}>
+        <Select
+          value={sortBy}
+          onValueChange={onSortChange}
+          defaultValue="release-desc"
+        >
           <SelectTrigger className="w-[140px] sm:w-[200px]">
-            <SelectValue placeholder="Sort by"></SelectValue>
+            <SelectValue defaultValue="release-desc">
+              Release Date (Newest)
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="default">Default</SelectItem>
+            <SelectItem value="release-desc">Release Date (Newest)</SelectItem>
+            <SelectItem value="release-asc">Release Date (Oldest)</SelectItem>
             <SelectItem value="rating-desc">Rating (High to Low)</SelectItem>
             <SelectItem value="rating-asc">Rating (Low to High)</SelectItem>
-            {/* <SelectItem value="date-desc">Review Date (Newest)</SelectItem>
-          <SelectItem value="date-asc">Review Date (Oldest)</SelectItem> */}
+            <SelectItem value="review-date">Review Date</SelectItem>
           </SelectContent>
         </Select>
       </div>
