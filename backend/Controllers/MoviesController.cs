@@ -143,10 +143,10 @@ namespace backend.Controllers
                         m.Title,
                         m.Overview,
                         m.PosterPath,
-                        ReleaseDate = m.ReleaseDate.ToString("dd-MM-yyyy"), // Thay đổi format
+                        ReleaseDate = m.ReleaseDate.ToString("dd/MM/yyyy"), // Thay đổi format
                         m.Rating,
                         m.Comment,
-                        ReviewDate = m.ReviewDate.ToString("dd-MM-yyyy"), // Thay đổi format
+                        ReviewDate = m.ReviewDate.ToString("dd/MM/yyyy"), // Thay đổi format
                         m.IsHidden,
                         m.GenreIds,
                     })

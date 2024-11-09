@@ -109,10 +109,10 @@ namespace backend.Controllers
                         t.Name,
                         t.Overview,
                         t.PosterPath,
-                        FirstAirDate = t.FirstAirDate.ToString("dd-MM-yyyy"), // Thay đổi format
+                        FirstAirDate = t.FirstAirDate.ToString("dd/MM/yyyy"), // Thay đổi format
                         t.Rating,
                         t.Comment,
-                        ReviewDate = t.ReviewDate.ToString("dd-MM-yyyy"), // Thay đổi format
+                        ReviewDate = t.ReviewDate.ToString("dd/MM/yyyy"), // Thay đổi format
                         t.IsHidden,
                         t.GenreIds,
                     })
