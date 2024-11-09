@@ -73,7 +73,7 @@ export default function MovieCard({ movie }: MovieCardProps) {
         </div>
       </div>
       <CardContent className="flex flex-col flex-grow p-3 sm:p-4">
-        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 line-clamp-1 group-hover:text-primary transition-colors">
+        <h3 className="font-bold text-base sm:text-lg mb-2 sm:mb-3 group-hover:text-primary transition-colors">
           {movie.title}
         </h3>
         <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
