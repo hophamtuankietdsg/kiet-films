@@ -8,4 +8,5 @@ export interface Movie {
   comment: string;
   reviewDate: string;
   isHidden: boolean;
+  genreIds: string;
 }

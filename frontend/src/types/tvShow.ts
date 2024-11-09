@@ -8,4 +8,5 @@ export interface TVShow {
   comment: string;
   reviewDate: string;
   isHidden: boolean;
+  genreIds: string;
 }
