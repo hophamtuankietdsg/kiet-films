@@ -184,5 +184,33 @@ namespace backend.Controllers
                 return StatusCode(500, $"Error toggling TV Show visibility: {ex.Message}");
             }
         }
+
+        [HttpGet("test-cache")]
+        public async Task<IActionResult> TestCache()
+        {
+            try
+            {
+                string testKey = "test_cache_key";
+                string testValue = $"Test value at {DateTime.UtcNow}";
+
+                // Set cache
+                await _cacheService.SetAsync(testKey, testValue, TimeSpan.FromMinutes(1));
+                
+                // Get cache
+                var cachedValue = await _cacheService.GetAsync<string>(testKey);
+
+                return Ok(new
+                {
+                    originalValue = testValue,
+                    cachedValue = cachedValue,
+                    isCacheWorking = testValue == cachedValue
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Redis test failed");
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
     }
 }

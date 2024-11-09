@@ -36,10 +36,16 @@ namespace backend.Services
         {
             try
             {
+                _logger.LogInformation("Getting cache for key: {Key}", key);
                 var data = await _cache.GetStringAsync(key);
+                
                 if (string.IsNullOrEmpty(data))
+                {
+                    _logger.LogInformation("Cache miss for key: {Key}", key);
                     return default;
+                }
 
+                _logger.LogInformation("Cache hit for key: {Key}", key);
                 return JsonSerializer.Deserialize<T>(data, _jsonOptions);
             }
             catch (Exception ex)
@@ -56,6 +62,7 @@ namespace backend.Services
 
             try
             {
+                _logger.LogInformation("Setting cache for key: {Key}", key);
                 var options = expirationTime.HasValue
                     ? new DistributedCacheEntryOptions 
                     { 
@@ -66,6 +73,7 @@ namespace backend.Services
 
                 var serializedData = JsonSerializer.Serialize(value, _jsonOptions);
                 await _cache.SetStringAsync(key, serializedData, options);
+                _logger.LogInformation("Cache set successfully for key: {Key}", key);
             }
             catch (Exception ex)
             {
