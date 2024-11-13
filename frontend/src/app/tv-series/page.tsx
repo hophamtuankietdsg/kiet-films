@@ -1,5 +1,6 @@
 import { getRatedTVShows } from '@/lib/api';
 import MediaListClient from '@/components/MediaListClient';
+import { Suspense } from 'react';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,7 +11,11 @@ export default async function TVSeriesPage() {
   return (
     <div className="container mx-auto py-8 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-bold mb-8 text-center">My Rated TV Shows</h1>
-      <MediaListClient items={visibleTVShows} type="tv" />
+      <Suspense
+        fallback={<MediaListClient items={[]} type="tv" isLoading={true} />}
+      >
+        <MediaListClient items={visibleTVShows} type="tv" />
+      </Suspense>
     </div>
   );
 }

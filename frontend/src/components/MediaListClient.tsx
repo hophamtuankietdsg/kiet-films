@@ -10,9 +10,14 @@ import type { TVShow } from '@/types/tvShow';
 interface MediaListClientProps {
   items: (Movie | TVShow)[];
   type: 'movie' | 'tv';
+  isLoading?: boolean;
 }
 
-export default function MediaListClient({ items, type }: MediaListClientProps) {
+export default function MediaListClient({
+  items,
+  type,
+  isLoading = false,
+}: MediaListClientProps) {
   const [filteredItems, setFilteredItems] = useState(items);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('release-desc');
@@ -78,9 +83,9 @@ export default function MediaListClient({ items, type }: MediaListClientProps) {
         onSortChange={setSortBy}
       />
       {type === 'movie' ? (
-        <MovieGrid movies={filteredItems as Movie[]} isLoading={false} />
+        <MovieGrid movies={filteredItems as Movie[]} isLoading={isLoading} />
       ) : (
-        <TVShowGrid tvShows={filteredItems as TVShow[]} isLoading={false} />
+        <TVShowGrid tvShows={filteredItems as TVShow[]} isLoading={isLoading} />
       )}
     </>
   );
