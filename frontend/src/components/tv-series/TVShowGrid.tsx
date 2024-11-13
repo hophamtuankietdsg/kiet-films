@@ -3,12 +3,26 @@ import Link from 'next/link';
 import React from 'react';
 import { Button } from '../ui/button';
 import TVShowCard from './TVShowCard';
+import TVShowCardSkeleton from '../skeleton/TVShowCardSkeleton';
 
 interface TVShowGridProps {
   tvShows: TVShow[];
+  isLoading?: boolean;
 }
 
-const TVShowGrid = ({ tvShows }: TVShowGridProps) => {
+const TVShowGrid = ({ tvShows, isLoading }: TVShowGridProps) => {
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <TVShowCardSkeleton key={index} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (tvShows.length === 0) {
     return (
       <div className="max-w-2xl mx-auto text-center px-4">

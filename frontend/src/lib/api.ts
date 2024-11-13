@@ -1,5 +1,5 @@
 import { TVShow } from '@/types/tvShow';
-import { API_URL, getApiUrl } from './constants';
+import { getApiUrl } from './constants';
 import { Movie } from '@/types/movie';
 
 export async function getRatedMovies(): Promise<Movie[]> {
@@ -35,7 +35,7 @@ export async function toggleMovieVisibility(
   movieId: number
 ): Promise<{ isHidden: boolean }> {
   try {
-    const baseUrl = API_URL.development;
+    const baseUrl = getApiUrl();
     const res = await fetch(`${baseUrl}/api/movies/${movieId}/visibility`, {
       method: 'PATCH',
       headers: {
