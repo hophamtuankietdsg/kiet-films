@@ -14,9 +14,9 @@ namespace backend.Data
         {
         }
 
-        public DbSet<Movie> Movies { get; set; }
-        public DbSet<TVShow> TVShows { get; set; }
-        public DbSet<Genre> Genres { get; set; }
+        public required DbSet<Movie> Movies { get; set; }
+        public required DbSet<TVShow> TVShows { get; set; }
+        public required DbSet<Genre> Genres { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -216,7 +216,32 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
-            return StatusCode(500, $"Error toggling movie visibility: {ex.Message}");
+                return StatusCode(500, $"Error toggling movie visibility: {ex.Message}");
+            }
+        }
+
+        [HttpGet("{id}/videos")]
+        public async Task<IActionResult> GetMovieVideo(int id)
+        {
+            try {
+                string cacheKey = $"movie_videos_{id}";
+
+                var cachedVideos = await _cacheService.GetAsync<VideoResponse>(cacheKey);
+                if (cachedVideos != null)
+                {
+                    return Ok(cachedVideos);
+                }
+
+                var videos = await _tmdbService.GetMovieVideosAsync(id);
+
+                await _cacheService.SetAsync(cacheKey, videos, TimeSpan.FromHours(24));
+
+                return Ok(videos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting movie videos");
+                return StatusCode(500, ex.Message);
             }
         }
 

@@ -14,6 +14,8 @@ namespace backend.Services
         Task<MovieDto> GetMovieDetailsAsync(int movieId);
         Task<SearchResult<TVShowDto>> SearchTVShowsAsync(string query);
         Task<TVShowDto> GetTVShowDetailsAsync(int tvShowId);
+        Task<VideoResponse> GetMovieVideosAsync(int movieId);
+        Task<VideoResponse> GetTVShowVideosAsync(int tvShowId);
     }
 
     public class TMDBService : ITMDBService
@@ -126,6 +128,34 @@ namespace backend.Services
             }
 
             return tvShowDetails ?? new TVShowDto();
+        }
+
+        public async Task<VideoResponse> GetMovieVideosAsync(int movieId)
+        {
+            var url = $"{BaseUrl}/movie/{movieId}/videos?language=en-US";
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(url)
+            };
+
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<VideoResponse>() ?? new VideoResponse();
+        }
+
+        public async Task<VideoResponse> GetTVShowVideosAsync(int tvShowId)
+        {
+            var url = $"{BaseUrl}/tv/{tvShowId}/videos?language=en-US";
+            var request = new HttpRequestMessage
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(url)
+            };
+
+            var response = await _httpClient.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<VideoResponse>() ?? new VideoResponse();
         }
     }
 }

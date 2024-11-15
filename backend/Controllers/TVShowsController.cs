@@ -185,6 +185,31 @@ namespace backend.Controllers
             }
         }
 
+        [HttpGet("{id}/videos")]
+        public async Task<IActionResult> GetTVShowVideo(int id)
+        {
+            try {
+                string cacheKey = $"tvshow_videos_{id}";
+
+                var cachedVideos = await _cacheService.GetAsync<VideoResponse>(cacheKey);
+                if (cachedVideos != null)
+                {
+                    return Ok(cachedVideos);
+                }
+
+                var videos = await _tmdbService.GetTVShowVideosAsync(id);
+
+                await _cacheService.SetAsync(cacheKey, videos, TimeSpan.FromHours(24));
+
+                return Ok(videos);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting movie videos");
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         [HttpGet("test-cache")]
         public async Task<IActionResult> TestCache()
         {
