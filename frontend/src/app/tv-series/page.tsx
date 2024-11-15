@@ -3,6 +3,7 @@ import MediaListClient from '@/components/MediaListClient';
 import { Suspense } from 'react';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function TVSeriesPage() {
   const tvShows = await getRatedTVShows();

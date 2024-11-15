@@ -4,7 +4,7 @@ export const API_URL = {
 };
 
 export const getApiUrl = () => {
-  return process.env.NODE_ENV === 'production'
+  return process.env.NODE_ENV === 'development'
     ? API_URL.production
     : API_URL.development;
 };
