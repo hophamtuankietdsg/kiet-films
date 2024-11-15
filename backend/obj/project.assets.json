@@ -19,6 +19,23 @@
           }
         }
       },
+      "AspNetCore.HealthChecks.Redis/8.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Diagnostics.HealthChecks": "8.0.0",
+          "StackExchange.Redis": "2.7.4"
+        },
+        "compile": {
+          "lib/net6.0/HealthChecks.Redis.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/HealthChecks.Redis.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Azure.Core/1.35.0": {
         "type": "package",
         "dependencies": {
@@ -1914,6 +1931,22 @@
         "lib/net8.0/HealthChecks.NpgSql.xml",
         "lib/netstandard2.0/HealthChecks.NpgSql.dll",
         "lib/netstandard2.0/HealthChecks.NpgSql.xml"
+      ]
+    },
+    "AspNetCore.HealthChecks.Redis/8.0.1": {
+      "sha512": "45jqq4ydvmm7yKpTf0jEpUuYloe2vlytN9dasmqwmQyorpNbjdvWuyvSmjVZM5nBa5e5ryF5MU+F7bXv6Zp2vQ==",
+      "type": "package",
+      "path": "aspnetcore.healthchecks.redis/8.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "aspnetcore.healthchecks.redis.8.0.1.nupkg.sha512",
+        "aspnetcore.healthchecks.redis.nuspec",
+        "icon.png",
+        "lib/net6.0/HealthChecks.Redis.dll",
+        "lib/net6.0/HealthChecks.Redis.xml",
+        "lib/netstandard2.0/HealthChecks.Redis.dll",
+        "lib/netstandard2.0/HealthChecks.Redis.xml"
       ]
     },
     "Azure.Core/1.35.0": {
@@ -5141,6 +5174,7 @@
   "projectFileDependencyGroups": {
     "net8.0": [
       "AspNetCore.HealthChecks.NpgSql >= 8.0.2",
+      "AspNetCore.HealthChecks.Redis >= 8.0.1",
       "Microsoft.AspNetCore.HttpOverrides >= 2.2.0",
       "Microsoft.AspNetCore.OpenApi >= 8.0.10",
       "Microsoft.EntityFrameworkCore.Design >= 8.0.10",
@@ -5159,11 +5193,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\2024\\projects\\kiet-films\\backend\\backend.csproj",
+      "projectUniqueName": "d:\\2024\\projects\\kiet-films\\backend\\backend.csproj",
       "projectName": "backend",
-      "projectPath": "D:\\2024\\projects\\kiet-films\\backend\\backend.csproj",
+      "projectPath": "d:\\2024\\projects\\kiet-films\\backend\\backend.csproj",
       "packagesPath": "C:\\Users\\kiethopt\\.nuget\\packages\\",
-      "outputPath": "D:\\2024\\projects\\kiet-films\\backend\\obj\\",
+      "outputPath": "d:\\2024\\projects\\kiet-films\\backend\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\kiethopt\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -5201,6 +5235,10 @@
           "AspNetCore.HealthChecks.NpgSql": {
             "target": "Package",
             "version": "[8.0.2, )"
+          },
+          "AspNetCore.HealthChecks.Redis": {
+            "target": "Package",
+            "version": "[8.0.1, )"
           },
           "Microsoft.AspNetCore.HttpOverrides": {
             "target": "Package",

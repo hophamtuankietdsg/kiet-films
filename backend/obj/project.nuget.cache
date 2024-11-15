@@ -1,10 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "t0N4iqcXx4I=",
+  "dgSpecHash": "PdhhSBL9nFM=",
   "success": true,
   "projectFilePath": "D:\\2024\\projects\\kiet-films\\backend\\backend.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\kiethopt\\.nuget\\packages\\aspnetcore.healthchecks.npgsql\\8.0.2\\aspnetcore.healthchecks.npgsql.8.0.2.nupkg.sha512",
+    "C:\\Users\\kiethopt\\.nuget\\packages\\aspnetcore.healthchecks.redis\\8.0.1\\aspnetcore.healthchecks.redis.8.0.1.nupkg.sha512",
     "C:\\Users\\kiethopt\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\kiethopt\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
     "C:\\Users\\kiethopt\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",

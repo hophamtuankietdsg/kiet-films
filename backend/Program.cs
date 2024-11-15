@@ -63,6 +63,10 @@ builder.Services.AddHealthChecks()
         builder.Configuration.GetConnectionString("DefaultConnection")!,
         name: "database",
         tags: new[] { "db", "sql", "postgresql" })
+    .AddRedis(
+        builder.Configuration.GetConnectionString("Redis")!,
+        name: "redis",
+        tags: new[] { "cache", "redis" })
     .AddCheck("self", () => HealthCheckResult.Healthy());
 
 // Add Redis configuration
