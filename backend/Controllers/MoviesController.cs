@@ -13,17 +13,19 @@ namespace backend.Controllers
     {
         private readonly ITMDBService _tmdbService;
         private readonly ApplicationDbContext _context;
-        private readonly ICacheService _cacheService;
         private readonly ILogger<MoviesController> _logger;
-        private const string RATED_MOVIES_CACHE_KEY = "rated_movies";
-        private const string MOVIE_DETAILS_CACHE_PREFIX = "movie_details_";
 
-        public MoviesController(ITMDBService tMDBService, ApplicationDbContext context, ICacheService cacheService, ILogger<MoviesController> logger)
+        public MoviesController(ITMDBService tMDBService, ApplicationDbContext context, ILogger<MoviesController> logger)
         {
             _tmdbService = tMDBService;
             _context = context;
-            _cacheService = cacheService;
             _logger = logger;
+        }
+
+        private IActionResult HandleError(Exception ex, string message)
+        {
+            _logger.LogError(ex, message);
+            return StatusCode(500, ex.Message);
         }
 
         [HttpGet("search")]
@@ -31,26 +33,12 @@ namespace backend.Controllers
         {
             try
             {
-                // Cache key for search results
-                string cacheKey = $"movie_search_{query.ToLower()}";
-                
-                // Try get from cache first
-                var cachedResult = await _cacheService.GetAsync<SearchResult<MovieDto>>(cacheKey);
-                if (cachedResult != null)
-                {
-                    return Ok(cachedResult);
-                }
-
                 var result = await _tmdbService.SearchMoviesAsync(query);
-                
-                // Cache search results for 1 hour
-                await _cacheService.SetAsync(cacheKey, result, TimeSpan.FromHours(1));
-                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return HandleError(ex, "Error searching movies");
             }
         }
 
@@ -64,40 +52,24 @@ namespace backend.Controllers
                 
                 if (existingMovie == null)
                 {
-                    try {
-                        // Try get movie details from cache
-                        string detailsCacheKey = $"{MOVIE_DETAILS_CACHE_PREFIX}{reviewDto.MovieId}";
-                        var movieDetails = await _cacheService.GetAsync<MovieDto>(detailsCacheKey);
-                        
-                        if (movieDetails == null)
-                        {
-                            movieDetails = await _tmdbService.GetMovieDetailsAsync(reviewDto.MovieId);
-                            // Cache movie details for 24 hours
-                            await _cacheService.SetAsync(detailsCacheKey, movieDetails, TimeSpan.FromHours(24));
-                        }
+                    var movieDetails = await _tmdbService.GetMovieDetailsAsync(reviewDto.MovieId);
+                    var utcReviewDate = DateTime.UtcNow;
+                    var genreIdsString = string.Join(",", movieDetails.GenreIds);
 
-                        var utcReviewDate = DateTime.UtcNow;
-                        var genreIdsString = string.Join(",", movieDetails.GenreIds);
-
-                        existingMovie = new Movie
-                        {
-                            Id = movieDetails.Id,
-                            Title = movieDetails.Title,
-                            Overview = movieDetails.Overview,
-                            PosterPath = movieDetails.PosterPath,
-                            ReleaseDate = movieDetails.ReleaseDate.ToUniversalTime(),
-                            Rating = reviewDto.Rating,
-                            Comment = reviewDto.Comment,
-                            ReviewDate = utcReviewDate,
-                            GenreIds = genreIdsString
-                        };
-
-                        await _context.Movies.AddAsync(existingMovie);
-                    }
-                    catch (Exception tmdbEx)
+                    existingMovie = new Movie
                     {
-                        return StatusCode(500, $"TMDB Error: {tmdbEx.Message}");
-                    }
+                        Id = movieDetails.Id,
+                        Title = movieDetails.Title,
+                        Overview = movieDetails.Overview,
+                        PosterPath = movieDetails.PosterPath,
+                        ReleaseDate = movieDetails.ReleaseDate.ToUniversalTime(),
+                        Rating = reviewDto.Rating,
+                        Comment = reviewDto.Comment,
+                        ReviewDate = utcReviewDate,
+                        GenreIds = genreIdsString
+                    };
+
+                    await _context.Movies.AddAsync(existingMovie);
                 }
                 else
                 {
@@ -106,19 +78,12 @@ namespace backend.Controllers
                     existingMovie.ReviewDate = DateTime.UtcNow;
                 }
 
-                try {
-                    await _context.SaveChangesAsync();
-                    await _cacheService.RemoveAsync(RATED_MOVIES_CACHE_KEY);
-                    return Ok(existingMovie);
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(500, ex.Message);
-                }
+                await _context.SaveChangesAsync();
+                return Ok(existingMovie);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"General Error: {ex.Message} - Stack Trace: {ex.StackTrace}");
+                return HandleError(ex, "Error rating movie");
             }
         }
 
@@ -127,12 +92,6 @@ namespace backend.Controllers
         {
             try
             {
-                var cachedMovies = await _cacheService.GetAsync<List<object>>(RATED_MOVIES_CACHE_KEY);
-                if (cachedMovies != null)
-                {
-                    return Ok(cachedMovies);
-                }
-
                 var ratedMovies = await _context.Movies
                     .AsNoTracking()
                     .Where(m => !m.IsHidden)
@@ -143,29 +102,24 @@ namespace backend.Controllers
                         m.Title,
                         m.Overview,
                         m.PosterPath,
-                        ReleaseDate = m.ReleaseDate.ToString("dd/MM/yyyy"), // Thay đổi format
+                        ReleaseDate = m.ReleaseDate.ToString("dd/MM/yyyy"),
                         m.Rating,
                         m.Comment,
-                        ReviewDate = m.ReviewDate.ToString("dd/MM/yyyy"), // Thay đổi format
+                        ReviewDate = m.ReviewDate.ToString("dd/MM/yyyy"),
                         m.IsHidden,
                         m.GenreIds,
                     })
                     .ToListAsync();
 
-                if (ratedMovies != null && ratedMovies.Any())
-                {
-                    await _cacheService.SetAsync(RATED_MOVIES_CACHE_KEY, ratedMovies, TimeSpan.FromMinutes(5));
-                }
-
                 return Ok(ratedMovies);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting rated movies");
-                return StatusCode(500, ex.Message);
+                return HandleError(ex, "Error getting rated movies");
             }
         }
 
+        // DELETE: api/movies/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMovie(int id)
         {
@@ -180,11 +134,7 @@ namespace backend.Controllers
                 _context.Movies.Remove(movie);
                 await _context.SaveChangesAsync();
 
-                // Clear related caches
-                await _cacheService.RemoveAsync(RATED_MOVIES_CACHE_KEY);
-                await _cacheService.RemoveAsync($"{MOVIE_DETAILS_CACHE_PREFIX}{id}");
-
-                return Ok(new {message = $"Movie '{movie.Title}' deleted successfully!"});
+                return Ok(new { message = $"Movie '{movie.Title}' deleted successfully!" });
             }
             catch (Exception ex)
             {
@@ -192,26 +142,42 @@ namespace backend.Controllers
             }
         }
 
+        // PATCH: api/movies/{id}/visibility
         [HttpPatch("{id}/visibility")]
         public async Task<IActionResult> ToggleMovieVisibility(int id)
         {
             try
             {
-                var movie = await _context.Movies.FindAsync(id);
+                var movie = await _context.Movies
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(m => m.Id == id);
+
                 if (movie == null)
                 {
                     return NotFound($"Movie with ID {id} not found!");
                 }
 
-                movie.IsHidden = !movie.IsHidden;
-                await _context.SaveChangesAsync();
+                // Update với một entity mới
+                var updatedMovie = new Movie
+                {
+                    Id = movie.Id,
+                    Title = movie.Title,
+                    Overview = movie.Overview,
+                    PosterPath = movie.PosterPath,
+                    ReleaseDate = movie.ReleaseDate,
+                    Rating = movie.Rating,
+                    Comment = movie.Comment,
+                    ReviewDate = movie.ReviewDate,
+                    GenreIds = movie.GenreIds,
+                    IsHidden = !movie.IsHidden
+                };
 
-                // Clear rated movies cache when visibility changes
-                await _cacheService.RemoveAsync(RATED_MOVIES_CACHE_KEY);
+                _context.Movies.Update(updatedMovie);
+                await _context.SaveChangesAsync();
 
                 return Ok(new { 
                     message = $"Movie '{movie.Title}' is now {(movie.IsHidden ? "hidden" : "visible")}",
-                    isHidden = movie.IsHidden
+                    isHidden = updatedMovie.IsHidden
                 });
             }
             catch (Exception ex)
@@ -220,56 +186,18 @@ namespace backend.Controllers
             }
         }
 
+        // GET: api/movies/{id}/videos
         [HttpGet("{id}/videos")]
         public async Task<IActionResult> GetMovieVideo(int id)
         {
-            try {
-                string cacheKey = $"movie_videos_{id}";
-
-                var cachedVideos = await _cacheService.GetAsync<VideoResponse>(cacheKey);
-                if (cachedVideos != null)
-                {
-                    return Ok(cachedVideos);
-                }
-
+            try 
+            {
                 var videos = await _tmdbService.GetMovieVideosAsync(id);
-
-                await _cacheService.SetAsync(cacheKey, videos, TimeSpan.FromHours(24));
-
                 return Ok(videos);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting movie videos");
-                return StatusCode(500, ex.Message);
-            }
-        }
-
-        [HttpGet("test-cache")]
-        public async Task<IActionResult> TestCache()
-        {
-            try
-            {
-                string testKey = "test_cache_key";
-                string testValue = $"Test value at {DateTime.UtcNow}";
-
-                // Set cache
-                await _cacheService.SetAsync(testKey, testValue, TimeSpan.FromMinutes(1));
-                
-                // Get cache
-                var cachedValue = await _cacheService.GetAsync<string>(testKey);
-
-                return Ok(new
-                {
-                    originalValue = testValue,
-                    cachedValue = cachedValue,
-                    isCacheWorking = testValue == cachedValue
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Redis test failed");
-                return StatusCode(500, new { error = ex.Message });
+                return HandleError(ex, "Error getting movie videos");
             }
         }
     }

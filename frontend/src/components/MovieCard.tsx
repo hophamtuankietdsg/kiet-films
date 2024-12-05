@@ -9,7 +9,6 @@ import { MOVIE_GENRES } from '@/lib/constants';
 import { genreColors } from '@/lib/genreColors';
 import { formatDate, getYearFromDate } from '@/lib/utils';
 import { Button } from './ui/button';
-import { useToast } from '@/hooks/use-toast';
 import VideoDialog from './ui/video-dialog';
 
 interface MovieCardProps {
@@ -19,7 +18,6 @@ interface MovieCardProps {
 export default function MovieCard({ movie }: MovieCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [trailerKey, setTrailerKey] = useState<string>();
-  const { toast } = useToast();
 
   const genres = movie.genreIds
     ? movie.genreIds
@@ -54,19 +52,11 @@ export default function MovieCard({ movie }: MovieCardProps) {
         setTrailerKey(trailer.key);
         setIsDialogOpen(true);
       } else {
-        toast({
-          title: 'No Trailer Available',
-          description: 'Sorry, no trailer was found for this movie.',
-          variant: 'destructive',
-        });
+        alert('No trailer available for this movie');
       }
     } catch (err) {
       console.error('Failed to load trailer:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to load the trailer. Please try again later.',
-        variant: 'destructive',
-      });
+      alert('Failed to load the trailer');
     }
   };
 

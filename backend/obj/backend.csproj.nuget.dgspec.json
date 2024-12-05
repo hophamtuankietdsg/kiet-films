@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\2024\\projects\\kiet-films\\backend\\backend.csproj": {}
+    "D:\\2024\\projects\\kiet-films-2\\kiet-films\\backend\\backend.csproj": {}
   },
   "projects": {
-    "D:\\2024\\projects\\kiet-films\\backend\\backend.csproj": {
+    "D:\\2024\\projects\\kiet-films-2\\kiet-films\\backend\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\2024\\projects\\kiet-films\\backend\\backend.csproj",
+        "projectUniqueName": "D:\\2024\\projects\\kiet-films-2\\kiet-films\\backend\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "D:\\2024\\projects\\kiet-films\\backend\\backend.csproj",
+        "projectPath": "D:\\2024\\projects\\kiet-films-2\\kiet-films\\backend\\backend.csproj",
         "packagesPath": "C:\\Users\\kiethopt\\.nuget\\packages\\",
-        "outputPath": "D:\\2024\\projects\\kiet-films\\backend\\obj\\",
+        "outputPath": "D:\\2024\\projects\\kiet-films-2\\kiet-films\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\kiethopt\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -46,14 +46,6 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
-            "AspNetCore.HealthChecks.NpgSql": {
-              "target": "Package",
-              "version": "[8.0.2, )"
-            },
-            "AspNetCore.HealthChecks.Redis": {
-              "target": "Package",
-              "version": "[8.0.1, )"
-            },
             "Microsoft.AspNetCore.HttpOverrides": {
               "target": "Package",
               "version": "[2.2.0, )"
@@ -78,21 +70,9 @@
               "target": "Package",
               "version": "[8.0.10, )"
             },
-            "Microsoft.Extensions.Caching.StackExchangeRedis": {
-              "target": "Package",
-              "version": "[8.0.10, )"
-            },
             "Microsoft.Extensions.DependencyInjection": {
               "target": "Package",
               "version": "[8.0.1, )"
-            },
-            "Npgsql.EntityFrameworkCore.PostgreSQL": {
-              "target": "Package",
-              "version": "[8.0.10, )"
-            },
-            "StackExchange.Redis": {
-              "target": "Package",
-              "version": "[2.8.16, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",

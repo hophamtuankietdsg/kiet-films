@@ -9,7 +9,6 @@ import { TV_GENRES } from '@/lib/constants';
 import { genreColors } from '@/lib/genreColors';
 import { formatDate, getYearFromDate } from '@/lib/utils';
 import { Button } from '../ui/button';
-import { useToast } from '@/hooks/use-toast';
 import VideoDialog from '../ui/video-dialog';
 
 interface TVShowCardProps {
@@ -19,7 +18,6 @@ interface TVShowCardProps {
 export default function TVShowCard({ tvShow }: TVShowCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [trailerKey, setTrailerKey] = useState<string>();
-  const { toast } = useToast();
 
   const rating = tvShow.rating?.toString() || 'N/A';
   const year = tvShow.firstAirDate
@@ -54,19 +52,11 @@ export default function TVShowCard({ tvShow }: TVShowCardProps) {
         setTrailerKey(trailer.key);
         setIsDialogOpen(true);
       } else {
-        toast({
-          title: 'No Trailer Available',
-          description: 'Sorry, no trailer was found for this TV show.',
-          variant: 'destructive',
-        });
+        alert('No trailer available for this TV show');
       }
     } catch (err) {
       console.error('Failed to load trailer:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to load the trailer. Please try again later.',
-        variant: 'destructive',
-      });
+      alert('Failed to load the trailer');
     }
   };
 

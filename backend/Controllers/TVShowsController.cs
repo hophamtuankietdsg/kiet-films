@@ -13,18 +13,22 @@ namespace backend.Controllers
     {
         private readonly ITMDBService _tmdbService;
         private readonly ApplicationDbContext _context;
-        private readonly ICacheService _cacheService;
-        private readonly ILogger<MoviesController> _logger;
-        private const string RATED_TVSHOWS_CACHE_KEY = "rated_tvshows";
+        private readonly ILogger<TVShowsController> _logger;
 
-        public TVShowsController(ITMDBService tMDBService ,ApplicationDbContext context, ICacheService cacheService, ILogger<MoviesController> logger)
+        public TVShowsController(ITMDBService tMDBService ,ApplicationDbContext context, ILogger<TVShowsController> logger)
         {
             _tmdbService = tMDBService;
             _context = context;
-            _cacheService = cacheService;
             _logger = logger;
         }
 
+        private IActionResult HandleError(Exception ex, string message)
+        {
+            _logger.LogError(ex, message);
+            return StatusCode(500, ex.Message);
+        }
+
+        // GET: api/tvshows/search?query={query}
         [HttpGet("search")]
         public async Task<IActionResult> SearchTVShows([FromQuery] string query)
         {
@@ -35,12 +39,13 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return HandleError(ex, "Error searching TV shows");
             }
         }
 
-        [HttpPost("rated")]
-        public async Task<IActionResult> RateTVShows([FromBody] TVShowReviewDto reviewDto)
+        // POST: api/tvshows/rate
+        [HttpPost("rate")]
+        public async Task<IActionResult> RateTVShow([FromBody] TVShowReviewDto reviewDto)
         {
             try
             {
@@ -76,10 +81,6 @@ namespace backend.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                
-                // Xóa cache để buộc refresh
-                await _cacheService.RemoveAsync(RATED_TVSHOWS_CACHE_KEY);
-                
                 return Ok(existingTVShow);
             }
             catch (Exception ex)
@@ -88,17 +89,12 @@ namespace backend.Controllers
             }
         }
 
+        // GET: api/tvshows/rated
         [HttpGet("rated")]
         public async Task<IActionResult> GetRatedTVShows()
         {
             try
             {
-                var cachedTVShows = await _cacheService.GetAsync<List<object>>(RATED_TVSHOWS_CACHE_KEY);
-                if (cachedTVShows != null)
-                {
-                    return Ok(cachedTVShows);
-                }
-
                 var ratedTVShows = await _context.TVShows
                     .AsNoTracking()
                     .Where(t => !t.IsHidden)
@@ -109,19 +105,14 @@ namespace backend.Controllers
                         t.Name,
                         t.Overview,
                         t.PosterPath,
-                        FirstAirDate = t.FirstAirDate.ToString("dd/MM/yyyy"), // Thay đổi format
+                        FirstAirDate = t.FirstAirDate.ToString("dd/MM/yyyy"),
                         t.Rating,
                         t.Comment,
-                        ReviewDate = t.ReviewDate.ToString("dd/MM/yyyy"), // Thay đổi format
+                        ReviewDate = t.ReviewDate.ToString("dd/MM/yyyy"),
                         t.IsHidden,
                         t.GenreIds,
                     })
                     .ToListAsync();
-
-                if (ratedTVShows != null && ratedTVShows.Any())
-                {
-                    await _cacheService.SetAsync(RATED_TVSHOWS_CACHE_KEY, ratedTVShows, TimeSpan.FromMinutes(5));
-                }
 
                 return Ok(ratedTVShows);
             }
@@ -132,6 +123,7 @@ namespace backend.Controllers
             }
         }
 
+        // DELETE: api/tvshows/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTVShow(int id)
         {
@@ -146,9 +138,6 @@ namespace backend.Controllers
                 _context.TVShows.Remove(tvShow);
                 await _context.SaveChangesAsync();
 
-                // Xóa cache khi xóa TV Show
-                await _cacheService.RemoveAsync(RATED_TVSHOWS_CACHE_KEY);
-
                 return Ok(new { message = $"TV Show '{tvShow.Name}' deleted successfully!" });
             }
             catch (Exception ex)
@@ -157,26 +146,41 @@ namespace backend.Controllers
             }
         }
 
+        // PATCH: api/tvshows/{id}/visibility
         [HttpPatch("{id}/visibility")]
         public async Task<IActionResult> ToggleTVShowVisibility(int id)
         {
             try
             {
-                var tvShow = await _context.TVShows.FindAsync(id);
+                var tvShow = await _context.TVShows
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(t => t.Id == id);
+
                 if (tvShow == null)
                 {
                     return NotFound($"TV Show with ID {id} not found!");
                 }
 
-                tvShow.IsHidden = !tvShow.IsHidden;
-                await _context.SaveChangesAsync();
+                var updatedTVShow = new TVShow
+                {
+                    Id = tvShow.Id,
+                    Name = tvShow.Name,
+                    Overview = tvShow.Overview,
+                    PosterPath = tvShow.PosterPath,
+                    FirstAirDate = tvShow.FirstAirDate,
+                    Rating = tvShow.Rating,
+                    Comment = tvShow.Comment,
+                    ReviewDate = tvShow.ReviewDate,
+                    GenreIds = tvShow.GenreIds,
+                    IsHidden = !tvShow.IsHidden
+                };
 
-                // Xóa cache khi thay đổi visibility
-                await _cacheService.RemoveAsync(RATED_TVSHOWS_CACHE_KEY);
+                _context.TVShows.Update(updatedTVShow);
+                await _context.SaveChangesAsync();
 
                 return Ok(new { 
                     message = $"TV Show '{tvShow.Name}' is now {(tvShow.IsHidden ? "hidden" : "visible")}",
-                    isHidden = tvShow.IsHidden
+                    isHidden = updatedTVShow.IsHidden
                 });
             }
             catch (Exception ex)
@@ -185,56 +189,18 @@ namespace backend.Controllers
             }
         }
 
+        // GET: api/tvshows/{id}/videos
         [HttpGet("{id}/videos")]
         public async Task<IActionResult> GetTVShowVideo(int id)
         {
-            try {
-                string cacheKey = $"tvshow_videos_{id}";
-
-                var cachedVideos = await _cacheService.GetAsync<VideoResponse>(cacheKey);
-                if (cachedVideos != null)
-                {
-                    return Ok(cachedVideos);
-                }
-
+            try 
+            {
                 var videos = await _tmdbService.GetTVShowVideosAsync(id);
-
-                await _cacheService.SetAsync(cacheKey, videos, TimeSpan.FromHours(24));
-
                 return Ok(videos);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting movie videos");
-                return StatusCode(500, ex.Message);
-            }
-        }
-
-        [HttpGet("test-cache")]
-        public async Task<IActionResult> TestCache()
-        {
-            try
-            {
-                string testKey = "test_cache_key";
-                string testValue = $"Test value at {DateTime.UtcNow}";
-
-                // Set cache
-                await _cacheService.SetAsync(testKey, testValue, TimeSpan.FromMinutes(1));
-                
-                // Get cache
-                var cachedValue = await _cacheService.GetAsync<string>(testKey);
-
-                return Ok(new
-                {
-                    originalValue = testValue,
-                    cachedValue = cachedValue,
-                    isCacheWorking = testValue == cachedValue
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Redis test failed");
-                return StatusCode(500, new { error = ex.Message });
+                return HandleError(ex, "Error getting TV show videos");
             }
         }
     }

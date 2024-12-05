@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class OptimizeBackend : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,9 +17,9 @@ namespace backend.Migrations
                 name: "Genres",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false),
-                    Type = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
-                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,16 +30,16 @@ namespace backend.Migrations
                 name: "Movies",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false),
-                    Title = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    Overview = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
-                    PosterPath = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    ReleaseDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Rating = table.Column<double>(type: "double precision", nullable: false),
-                    Comment = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    ReviewDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IsHidden = table.Column<bool>(type: "boolean", nullable: false),
-                    GenreIds = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Overview = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
+                    PosterPath = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    ReleaseDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Rating = table.Column<double>(type: "float", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    ReviewDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsHidden = table.Column<bool>(type: "bit", nullable: false),
+                    GenreIds = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -50,16 +50,16 @@ namespace backend.Migrations
                 name: "TVShows",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false),
-                    Name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    Overview = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
-                    PosterPath = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    FirstAirDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Rating = table.Column<double>(type: "double precision", nullable: false),
-                    Comment = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
-                    ReviewDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IsHidden = table.Column<bool>(type: "boolean", nullable: false),
-                    GenreIds = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Overview = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
+                    PosterPath = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    FirstAirDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Rating = table.Column<double>(type: "float", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    ReviewDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsHidden = table.Column<bool>(type: "bit", nullable: false),
+                    GenreIds = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
