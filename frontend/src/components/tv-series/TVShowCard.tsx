@@ -6,7 +6,6 @@ import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Calendar, Clock, Star, Play } from 'lucide-react';
 import { TV_GENRES } from '@/lib/constants';
-import { genreColors } from '@/lib/genreColors';
 import { formatDate, getYearFromDate } from '@/lib/utils';
 import { Button } from '../ui/button';
 import VideoDialog from '../ui/video-dialog';
@@ -90,9 +89,7 @@ export default function TVShowCard({ tvShow }: TVShowCardProps) {
             {genres.map((genre) => (
               <Badge
                 key={genre}
-                className={`${
-                  genreColors[genre] || 'bg-gray-500/90'
-                } text-white text-[10px] sm:text-xs font-medium px-2 py-0.5 sm:px-2.5 sm:py-1 shadow-lg transition-transform hover:scale-105`}
+                className="bg-black/80 backdrop-blur-sm text-white text-[10px] sm:text-xs font-medium px-2 py-0.5 sm:px-2.5 sm:py-1 shadow-lg transition-all hover:bg-black/60"
               >
                 {genre}
               </Badge>
