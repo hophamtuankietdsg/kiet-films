@@ -48,6 +48,7 @@ namespace backend.Controllers
             try
             {
                 var existingMovie = await _context.Movies
+                    .Include(m => m.MovieGenres)
                     .FirstOrDefaultAsync(m => m.Id == reviewDto.MovieId);
                 
                 if (existingMovie == null)
@@ -66,7 +67,12 @@ namespace backend.Controllers
                         Rating = reviewDto.Rating,
                         Comment = reviewDto.Comment,
                         ReviewDate = utcReviewDate,
-                        GenreIds = genreIdsString
+                        GenreIds = genreIdsString,
+                        MovieGenres = movieDetails.GenreIds.Select(genreId => new MovieGenre
+                        {
+                            MovieId = movieDetails.Id,
+                            GenreId = genreId
+                        }).ToList()
                     };
 
                     await _context.Movies.AddAsync(existingMovie);
@@ -76,6 +82,17 @@ namespace backend.Controllers
                     existingMovie.Rating = reviewDto.Rating;
                     existingMovie.Comment = reviewDto.Comment;
                     existingMovie.ReviewDate = DateTime.UtcNow;
+
+                    var movieDetails = await _tmdbService.GetMovieDetailsAsync(reviewDto.MovieId);
+                    existingMovie.GenreIds = string.Join(",", movieDetails.GenreIds);
+                    
+                    _context.MovieGenres.RemoveRange(existingMovie.MovieGenres);
+                    
+                    existingMovie.MovieGenres = movieDetails.GenreIds.Select(genreId => new MovieGenre
+                    {
+                        MovieId = movieDetails.Id,
+                        GenreId = genreId
+                    }).ToList();
                 }
 
                 await _context.SaveChangesAsync();
@@ -93,6 +110,8 @@ namespace backend.Controllers
             try
             {
                 var ratedMovies = await _context.Movies
+                    .Include(m => m.MovieGenres)
+                    .ThenInclude(mg => mg.Genre)
                     .AsNoTracking()
                     .Where(m => !m.IsHidden)
                     .OrderByDescending(m => m.ReviewDate)
@@ -108,6 +127,12 @@ namespace backend.Controllers
                         ReviewDate = m.ReviewDate.ToString("dd/MM/yyyy"),
                         m.IsHidden,
                         m.GenreIds,
+                        MovieGenres = m.MovieGenres.Select(mg => new
+                        {
+                            mg.GenreId,
+                            mg.Genre.Name,
+                            mg.Genre.Type
+                        }).ToList()
                     })
                     .ToListAsync();
 
@@ -119,18 +144,21 @@ namespace backend.Controllers
             }
         }
 
-        // DELETE: api/movies/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMovie(int id)
         {
             try
             {
-                var movie = await _context.Movies.FindAsync(id);
+                var movie = await _context.Movies
+                    .Include(m => m.MovieGenres)
+                    .FirstOrDefaultAsync(m => m.Id == id);
+
                 if (movie == null)
                 {
                     return NotFound($"Movie with ID {id} not found");
                 }
 
+                _context.MovieGenres.RemoveRange(movie.MovieGenres);
                 _context.Movies.Remove(movie);
                 await _context.SaveChangesAsync();
 
@@ -142,42 +170,25 @@ namespace backend.Controllers
             }
         }
 
-        // PATCH: api/movies/{id}/visibility
         [HttpPatch("{id}/visibility")]
         public async Task<IActionResult> ToggleMovieVisibility(int id)
         {
             try
             {
-                var movie = await _context.Movies
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(m => m.Id == id);
-
+                var movie = await _context.Movies.FindAsync(id);
                 if (movie == null)
                 {
                     return NotFound($"Movie with ID {id} not found!");
                 }
 
-                // Update với một entity mới
-                var updatedMovie = new Movie
-                {
-                    Id = movie.Id,
-                    Title = movie.Title,
-                    Overview = movie.Overview,
-                    PosterPath = movie.PosterPath,
-                    ReleaseDate = movie.ReleaseDate,
-                    Rating = movie.Rating,
-                    Comment = movie.Comment,
-                    ReviewDate = movie.ReviewDate,
-                    GenreIds = movie.GenreIds,
-                    IsHidden = !movie.IsHidden
-                };
-
-                _context.Movies.Update(updatedMovie);
+                // Toggle the IsHidden value
+                movie.IsHidden = !movie.IsHidden;
+                _context.Entry(movie).Property(x => x.IsHidden).IsModified = true;
                 await _context.SaveChangesAsync();
 
                 return Ok(new { 
                     message = $"Movie '{movie.Title}' is now {(movie.IsHidden ? "hidden" : "visible")}",
-                    isHidden = updatedMovie.IsHidden
+                    isHidden = movie.IsHidden
                 });
             }
             catch (Exception ex)
@@ -186,7 +197,6 @@ namespace backend.Controllers
             }
         }
 
-        // GET: api/movies/{id}/videos
         [HttpGet("{id}/videos")]
         public async Task<IActionResult> GetMovieVideo(int id)
         {

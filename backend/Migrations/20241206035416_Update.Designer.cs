@@ -12,8 +12,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241205064003_OptimizeBackend")]
-    partial class OptimizeBackend
+    [Migration("20241206035416_Update")]
+    partial class Update
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -28,18 +28,22 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Models.Genre", b =>
                 {
                     b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("Type")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.HasKey("Id", "Type");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.HasKey("Id");
 
                     b.ToTable("Genres");
 
@@ -47,212 +51,212 @@ namespace backend.Migrations
                         new
                         {
                             Id = 28,
-                            Type = "movie",
-                            Name = "Action"
+                            Name = "Action",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 12,
-                            Type = "movie",
-                            Name = "Adventure"
+                            Name = "Adventure",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 16,
-                            Type = "movie",
-                            Name = "Animation"
+                            Name = "Animation",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 35,
-                            Type = "movie",
-                            Name = "Comedy"
+                            Name = "Comedy",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 80,
-                            Type = "movie",
-                            Name = "Crime"
+                            Name = "Crime",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 99,
-                            Type = "movie",
-                            Name = "Documentary"
+                            Name = "Documentary",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 18,
-                            Type = "movie",
-                            Name = "Drama"
+                            Name = "Drama",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 10751,
-                            Type = "movie",
-                            Name = "Family"
+                            Name = "Family",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 14,
-                            Type = "movie",
-                            Name = "Fantasy"
+                            Name = "Fantasy",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 36,
-                            Type = "movie",
-                            Name = "History"
+                            Name = "History",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 27,
-                            Type = "movie",
-                            Name = "Horror"
+                            Name = "Horror",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 10402,
-                            Type = "movie",
-                            Name = "Music"
+                            Name = "Music",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 9648,
-                            Type = "movie",
-                            Name = "Mystery"
+                            Name = "Mystery",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 10749,
-                            Type = "movie",
-                            Name = "Romance"
+                            Name = "Romance",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 878,
-                            Type = "movie",
-                            Name = "Science Fiction"
+                            Name = "Science Fiction",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 10770,
-                            Type = "movie",
-                            Name = "TV Movie"
+                            Name = "TV Movie",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 53,
-                            Type = "movie",
-                            Name = "Thriller"
+                            Name = "Thriller",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 10752,
-                            Type = "movie",
-                            Name = "War"
+                            Name = "War",
+                            Type = "movie"
                         },
                         new
                         {
                             Id = 37,
-                            Type = "movie",
-                            Name = "Western"
+                            Name = "Western",
+                            Type = "movie"
                         },
                         new
                         {
-                            Id = 10759,
-                            Type = "tv",
-                            Name = "Action & Adventure"
+                            Id = 110759,
+                            Name = "Action & Adventure",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 16,
-                            Type = "tv",
-                            Name = "Animation"
+                            Id = 100016,
+                            Name = "Animation",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 35,
-                            Type = "tv",
-                            Name = "Comedy"
+                            Id = 100035,
+                            Name = "Comedy",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 80,
-                            Type = "tv",
-                            Name = "Crime"
+                            Id = 100080,
+                            Name = "Crime",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 99,
-                            Type = "tv",
-                            Name = "Documentary"
+                            Id = 100099,
+                            Name = "Documentary",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 18,
-                            Type = "tv",
-                            Name = "Drama"
+                            Id = 100018,
+                            Name = "Drama",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 10751,
-                            Type = "tv",
-                            Name = "Family"
+                            Id = 110751,
+                            Name = "Family",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 10762,
-                            Type = "tv",
-                            Name = "Kids"
+                            Id = 110762,
+                            Name = "Kids",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 9648,
-                            Type = "tv",
-                            Name = "Mystery"
+                            Id = 109648,
+                            Name = "Mystery",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 10763,
-                            Type = "tv",
-                            Name = "News"
+                            Id = 110763,
+                            Name = "News",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 10764,
-                            Type = "tv",
-                            Name = "Reality"
+                            Id = 110764,
+                            Name = "Reality",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 10765,
-                            Type = "tv",
-                            Name = "Sci-Fi & Fantasy"
+                            Id = 110765,
+                            Name = "Sci-Fi & Fantasy",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 10766,
-                            Type = "tv",
-                            Name = "Soap"
+                            Id = 110766,
+                            Name = "Soap",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 10767,
-                            Type = "tv",
-                            Name = "Talk"
+                            Id = 110767,
+                            Name = "Talk",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 10768,
-                            Type = "tv",
-                            Name = "War & Politics"
+                            Id = 110768,
+                            Name = "War & Politics",
+                            Type = "tv"
                         },
                         new
                         {
-                            Id = 37,
-                            Type = "tv",
-                            Name = "Western"
+                            Id = 100037,
+                            Name = "Western",
+                            Type = "tv"
                         });
                 });
 
@@ -268,8 +272,7 @@ namespace backend.Migrations
 
                     b.Property<string>("GenreIds")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsHidden")
                         .HasColumnType("bit");
@@ -303,6 +306,21 @@ namespace backend.Migrations
                     b.ToTable("Movies");
                 });
 
+            modelBuilder.Entity("backend.Models.MovieGenre", b =>
+                {
+                    b.Property<int>("MovieId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GenreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("MovieId", "GenreId");
+
+                    b.HasIndex("GenreId");
+
+                    b.ToTable("MovieGenres");
+                });
+
             modelBuilder.Entity("backend.Models.TVShow", b =>
                 {
                     b.Property<int>("Id")
@@ -318,8 +336,7 @@ namespace backend.Migrations
 
                     b.Property<string>("GenreIds")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsHidden")
                         .HasColumnType("bit");
@@ -348,6 +365,76 @@ namespace backend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("TVShows");
+                });
+
+            modelBuilder.Entity("backend.Models.TVShowGenre", b =>
+                {
+                    b.Property<int>("TVShowId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GenreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("TVShowId", "GenreId");
+
+                    b.HasIndex("GenreId");
+
+                    b.ToTable("TVShowGenres");
+                });
+
+            modelBuilder.Entity("backend.Models.MovieGenre", b =>
+                {
+                    b.HasOne("backend.Models.Genre", "Genre")
+                        .WithMany("MovieGenres")
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Models.Movie", "Movie")
+                        .WithMany("MovieGenres")
+                        .HasForeignKey("MovieId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Genre");
+
+                    b.Navigation("Movie");
+                });
+
+            modelBuilder.Entity("backend.Models.TVShowGenre", b =>
+                {
+                    b.HasOne("backend.Models.Genre", "Genre")
+                        .WithMany("TVShowGenres")
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Models.TVShow", "TVShow")
+                        .WithMany("TVShowGenres")
+                        .HasForeignKey("TVShowId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Genre");
+
+                    b.Navigation("TVShow");
+                });
+
+            modelBuilder.Entity("backend.Models.Genre", b =>
+                {
+                    b.Navigation("MovieGenres");
+
+                    b.Navigation("TVShowGenres");
+                });
+
+            modelBuilder.Entity("backend.Models.Movie", b =>
+                {
+                    b.Navigation("MovieGenres");
+                });
+
+            modelBuilder.Entity("backend.Models.TVShow", b =>
+                {
+                    b.Navigation("TVShowGenres");
                 });
 #pragma warning restore 612, 618
         }

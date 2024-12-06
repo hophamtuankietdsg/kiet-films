@@ -9,52 +9,62 @@ namespace backend.Data
 {
     public class ApplicationDbContext : DbContext
     {
+        private const int TV_GENRE_ID_OFFSET = 100000;
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options)
         {
         }
 
-        public required DbSet<Movie> Movies { get; set; }
-        public required DbSet<TVShow> TVShows { get; set; }
-        public required DbSet<Genre> Genres { get; set; }
+        public DbSet<Movie> Movies { get; set; } = null!;
+        public DbSet<TVShow> TVShows { get; set; } = null!;
+        public DbSet<Genre> Genres { get; set; } = null!;
+        public DbSet<MovieGenre> MovieGenres { get; set; } = null!;
+        public DbSet<TVShowGenre> TVShowGenres { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Movie>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedNever(); // ID sẽ không tự động generate
-                entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.Overview).HasMaxLength(2000);
-                entity.Property(e => e.PosterPath).HasMaxLength(500);
-                entity.Property(e => e.Comment).HasMaxLength(1000);
-                entity.Property(e => e.GenreIds).HasMaxLength(100);
-            });
+            // Configure Genre primary key
+            modelBuilder.Entity<Genre>()
+                .HasKey(g => g.Id);
 
-            modelBuilder.Entity<TVShow>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).ValueGeneratedNever();
-                entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
-                entity.Property(e => e.Overview).HasMaxLength(2000);
-                entity.Property(e => e.PosterPath).HasMaxLength(500);
-                entity.Property(e => e.Comment).HasMaxLength(1000);
-                entity.Property(e => e.GenreIds).HasMaxLength(100);
-            });
+            // Configure Movie-Genre relationship
+            modelBuilder.Entity<MovieGenre>()
+                .HasKey(mg => new { mg.MovieId, mg.GenreId });
 
-            modelBuilder.Entity<Genre>(entity =>
-            {
-                entity.HasKey(e => new { e.Id, e.Type });
-                entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
-                entity.Property(e => e.Type).IsRequired().HasMaxLength(10);
-            });
+            modelBuilder.Entity<MovieGenre>()
+                .HasOne(mg => mg.Movie)
+                .WithMany(m => m.MovieGenres)
+                .HasForeignKey(mg => mg.MovieId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MovieGenre>()
+                .HasOne(mg => mg.Genre)
+                .WithMany(g => g.MovieGenres)
+                .HasForeignKey(mg => mg.GenreId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure TVShow-Genre relationship
+            modelBuilder.Entity<TVShowGenre>()
+                .HasKey(tg => new { tg.TVShowId, tg.GenreId });
+
+            modelBuilder.Entity<TVShowGenre>()
+                .HasOne(tg => tg.TVShow)
+                .WithMany(t => t.TVShowGenres)
+                .HasForeignKey(tg => tg.TVShowId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TVShowGenre>()
+                .HasOne(tg => tg.Genre)
+                .WithMany(g => g.TVShowGenres)
+                .HasForeignKey(tg => tg.GenreId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Seed genre data
-            var genres = new List<Genre>
+            var movieGenres = new List<Genre>
             {
-                // Movie Genres
                 new Genre { Id = 28, Name = "Action", Type = "movie" },
                 new Genre { Id = 12, Name = "Adventure", Type = "movie" },
                 new Genre { Id = 16, Name = "Animation", Type = "movie" },
@@ -73,35 +83,36 @@ namespace backend.Data
                 new Genre { Id = 10770, Name = "TV Movie", Type = "movie" },
                 new Genre { Id = 53, Name = "Thriller", Type = "movie" },
                 new Genre { Id = 10752, Name = "War", Type = "movie" },
-                new Genre { Id = 37, Name = "Western", Type = "movie" },
-
-                // TV Show Genres
-                new Genre { Id = 10759, Name = "Action & Adventure", Type = "tv" },
-                new Genre { Id = 16, Name = "Animation", Type = "tv" },
-                new Genre { Id = 35, Name = "Comedy", Type = "tv" },
-                new Genre { Id = 80, Name = "Crime", Type = "tv" },
-                new Genre { Id = 99, Name = "Documentary", Type = "tv" },
-                new Genre { Id = 18, Name = "Drama", Type = "tv" },
-                new Genre { Id = 10751, Name = "Family", Type = "tv" },
-                new Genre { Id = 10762, Name = "Kids", Type = "tv" },
-                new Genre { Id = 9648, Name = "Mystery", Type = "tv" },
-                new Genre { Id = 10763, Name = "News", Type = "tv" },
-                new Genre { Id = 10764, Name = "Reality", Type = "tv" },
-                new Genre { Id = 10765, Name = "Sci-Fi & Fantasy", Type = "tv" },
-                new Genre { Id = 10766, Name = "Soap", Type = "tv" },
-                new Genre { Id = 10767, Name = "Talk", Type = "tv" },
-                new Genre { Id = 10768, Name = "War & Politics", Type = "tv" },
-                new Genre { Id = 37, Name = "Western", Type = "tv" }
+                new Genre { Id = 37, Name = "Western", Type = "movie" }
             };
 
-            modelBuilder.Entity<Genre>().HasData(genres);
+            var tvGenres = new List<Genre>
+            {
+                new Genre { Id = TV_GENRE_ID_OFFSET + 10759, Name = "Action & Adventure", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 16, Name = "Animation", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 35, Name = "Comedy", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 80, Name = "Crime", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 99, Name = "Documentary", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 18, Name = "Drama", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 10751, Name = "Family", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 10762, Name = "Kids", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 9648, Name = "Mystery", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 10763, Name = "News", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 10764, Name = "Reality", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 10765, Name = "Sci-Fi & Fantasy", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 10766, Name = "Soap", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 10767, Name = "Talk", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 10768, Name = "War & Politics", Type = "tv" },
+                new Genre { Id = TV_GENRE_ID_OFFSET + 37, Name = "Western", Type = "tv" }
+            };
+
+            var allGenres = movieGenres.Concat(tvGenres);
+            modelBuilder.Entity<Genre>().HasData(allGenres);
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            
-            // Enable second level caching
             optionsBuilder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         }
     }

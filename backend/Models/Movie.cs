@@ -59,5 +59,7 @@ namespace backend.Models
                 GenreIds = string.Join(",", value);
             }
         }
+
+        public ICollection<MovieGenre> MovieGenres { get; set; } = new List<MovieGenre>();
     }
 }

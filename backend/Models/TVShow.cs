@@ -56,5 +56,7 @@ namespace backend.Models
                 GenreIds = string.Join(",", value);
             }
         }
+
+        public ICollection<TVShowGenre> TVShowGenres { get; set; } = new List<TVShowGenre>();
     }
 }

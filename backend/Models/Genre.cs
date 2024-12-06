@@ -17,5 +17,9 @@ namespace backend.Models
         [Required]
         [MaxLength(10)]
         public string Type { get; set; } = string.Empty; // "movie" hoặc "tv"
+
+        // Navigation properties
+        public ICollection<MovieGenre> MovieGenres { get; set; } = new List<MovieGenre>();
+        public ICollection<TVShowGenre> TVShowGenres { get; set; } = new List<TVShowGenre>();
     }
 }

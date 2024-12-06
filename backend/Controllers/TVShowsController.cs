@@ -11,6 +11,7 @@ namespace backend.Controllers
     [Route("api/[controller]")]
     public class TVShowsController : ControllerBase
     {
+        private const int TV_GENRE_ID_OFFSET = 100000;
         private readonly ITMDBService _tmdbService;
         private readonly ApplicationDbContext _context;
         private readonly ILogger<TVShowsController> _logger;
@@ -28,7 +29,6 @@ namespace backend.Controllers
             return StatusCode(500, ex.Message);
         }
 
-        // GET: api/tvshows/search?query={query}
         [HttpGet("search")]
         public async Task<IActionResult> SearchTVShows([FromQuery] string query)
         {
@@ -43,13 +43,13 @@ namespace backend.Controllers
             }
         }
 
-        // POST: api/tvshows/rate
         [HttpPost("rate")]
         public async Task<IActionResult> RateTVShow([FromBody] TVShowReviewDto reviewDto)
         {
             try
             {
                 var existingTVShow = await _context.TVShows
+                    .Include(t => t.TVShowGenres)
                     .FirstOrDefaultAsync(t => t.Id == reviewDto.TVShowId);
                 
                 if (existingTVShow == null)
@@ -68,7 +68,12 @@ namespace backend.Controllers
                         Rating = reviewDto.Rating,
                         Comment = reviewDto.Comment,
                         ReviewDate = utcReviewDate,
-                        GenreIds = genreIdsString
+                        GenreIds = genreIdsString,
+                        TVShowGenres = tvShowDetails.GenreIds.Select(genreId => new TVShowGenre
+                        {
+                            TVShowId = tvShowDetails.Id,
+                            GenreId = TV_GENRE_ID_OFFSET + genreId
+                        }).ToList()
                     };
 
                     await _context.TVShows.AddAsync(existingTVShow);
@@ -78,6 +83,20 @@ namespace backend.Controllers
                     existingTVShow.Rating = reviewDto.Rating;
                     existingTVShow.Comment = reviewDto.Comment;
                     existingTVShow.ReviewDate = DateTime.UtcNow;
+
+                    // Cập nhật TVShowGenres
+                    var tvShowDetails = await _tmdbService.GetTVShowDetailsAsync(reviewDto.TVShowId);
+                    existingTVShow.GenreIds = string.Join(",", tvShowDetails.GenreIds);
+                    
+                    // Xóa các genre cũ
+                    _context.TVShowGenres.RemoveRange(existingTVShow.TVShowGenres);
+                    
+                    // Thêm các genre mới với offset
+                    existingTVShow.TVShowGenres = tvShowDetails.GenreIds.Select(genreId => new TVShowGenre
+                    {
+                        TVShowId = tvShowDetails.Id,
+                        GenreId = TV_GENRE_ID_OFFSET + genreId
+                    }).ToList();
                 }
 
                 await _context.SaveChangesAsync();
@@ -85,17 +104,18 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return HandleError(ex, "Error rating TV show");
             }
         }
 
-        // GET: api/tvshows/rated
         [HttpGet("rated")]
         public async Task<IActionResult> GetRatedTVShows()
         {
             try
             {
                 var ratedTVShows = await _context.TVShows
+                    .Include(t => t.TVShowGenres)
+                    .ThenInclude(tg => tg.Genre)
                     .AsNoTracking()
                     .Where(t => !t.IsHidden)
                     .OrderByDescending(t => t.ReviewDate)
@@ -111,6 +131,12 @@ namespace backend.Controllers
                         ReviewDate = t.ReviewDate.ToString("dd/MM/yyyy"),
                         t.IsHidden,
                         t.GenreIds,
+                        TVShowGenres = t.TVShowGenres.Select(tg => new
+                        {
+                            GenreId = tg.GenreId - TV_GENRE_ID_OFFSET, // Remove offset for client
+                            tg.Genre.Name,
+                            tg.Genre.Type
+                        }).ToList()
                     })
                     .ToListAsync();
 
@@ -118,23 +144,25 @@ namespace backend.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting rated TV shows");
-                return StatusCode(500, ex.Message);
+                return HandleError(ex, "Error getting rated TV shows");
             }
         }
 
-        // DELETE: api/tvshows/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTVShow(int id)
         {
             try
             {
-                var tvShow = await _context.TVShows.FindAsync(id);
+                var tvShow = await _context.TVShows
+                    .Include(t => t.TVShowGenres)
+                    .FirstOrDefaultAsync(t => t.Id == id);
+
                 if (tvShow == null)
                 {
                     return NotFound($"TV Show with ID {id} not found!");
                 }
 
+                _context.TVShowGenres.RemoveRange(tvShow.TVShowGenres);
                 _context.TVShows.Remove(tvShow);
                 await _context.SaveChangesAsync();
 
@@ -146,41 +174,25 @@ namespace backend.Controllers
             }
         }
 
-        // PATCH: api/tvshows/{id}/visibility
         [HttpPatch("{id}/visibility")]
         public async Task<IActionResult> ToggleTVShowVisibility(int id)
         {
             try
             {
-                var tvShow = await _context.TVShows
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(t => t.Id == id);
-
+                var tvShow = await _context.TVShows.FindAsync(id);
                 if (tvShow == null)
                 {
                     return NotFound($"TV Show with ID {id} not found!");
                 }
 
-                var updatedTVShow = new TVShow
-                {
-                    Id = tvShow.Id,
-                    Name = tvShow.Name,
-                    Overview = tvShow.Overview,
-                    PosterPath = tvShow.PosterPath,
-                    FirstAirDate = tvShow.FirstAirDate,
-                    Rating = tvShow.Rating,
-                    Comment = tvShow.Comment,
-                    ReviewDate = tvShow.ReviewDate,
-                    GenreIds = tvShow.GenreIds,
-                    IsHidden = !tvShow.IsHidden
-                };
-
-                _context.TVShows.Update(updatedTVShow);
+                // Toggle the IsHidden value
+                tvShow.IsHidden = !tvShow.IsHidden;
+                _context.Entry(tvShow).Property(x => x.IsHidden).IsModified = true;
                 await _context.SaveChangesAsync();
 
                 return Ok(new { 
                     message = $"TV Show '{tvShow.Name}' is now {(tvShow.IsHidden ? "hidden" : "visible")}",
-                    isHidden = updatedTVShow.IsHidden
+                    isHidden = tvShow.IsHidden
                 });
             }
             catch (Exception ex)
@@ -189,7 +201,6 @@ namespace backend.Controllers
             }
         }
 
-        // GET: api/tvshows/{id}/videos
         [HttpGet("{id}/videos")]
         public async Task<IActionResult> GetTVShowVideo(int id)
         {
